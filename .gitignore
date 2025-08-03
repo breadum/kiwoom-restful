@@ -1,4 +1,5 @@
 # Private information
+keys/
 appkey.txt
 secretkey.txt
 
@@ -41,6 +42,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+test/*.csv
 htmlcov/
 .tox/
 .nox/
