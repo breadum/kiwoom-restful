@@ -1,0 +1,52 @@
+[project]
+name = "kiwoom-rest"
+dynamic = ["version"]
+readme = "README.md"
+description = "Simple Python Wrapper for Kiwoom REST API+"
+
+authors = [{name = "breadum", email = "breadum.kr@gmail.com"}]
+license = "MIT"
+keywords =[
+    "키움증권",
+    "Kiwoom",
+    "Heroes",
+    "REST API",
+]
+classifiers = [
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Development Status :: 1 - Planning Copy",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+requires-python = ">=3.10"
+packages = "kiwoom"
+dependencies = [
+    "pandas>=2",
+    "requests>=2.32"
+]
+
+[project.urls]
+Homepage = "https://github.com/breadum/kiwoom-rest"
+Documentation = "https://github.com/breadum/kiwoom-rest/blob/main/README.md"
+Repository = "https://github.com/breadum/kiwoom-rest"
+Download = " https://pypi.org/project/kiwoom-rest"
+Issues = "https://github.com/breadum/kiwoom-rest/issues"
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+distribution = true
+package-dir = "kiwoom"
+
+[tool.pdm.version]
+source = "file"
+path = "kiwoom/__version__.py"
+
+[dependency-groups]
+publish = [
+    "twine>=6.1.0",
+]
