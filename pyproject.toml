@@ -47,6 +47,9 @@ source = "file"
 path = "kiwoom/__version__.py"
 
 [dependency-groups]
+dev = [
+    "IPython>=8.37.0",
+]
 publish = [
     "twine>=6.1.0",
 ]

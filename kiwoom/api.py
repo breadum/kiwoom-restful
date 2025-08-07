@@ -4,6 +4,7 @@ import asyncio
 
 from typing import Callable
 from os.path import isfile
+from requests import Session
 from requests.models import Response
 
 from kiwoom.config import REQ_LIMIT_TIME
@@ -16,6 +17,7 @@ class API:
         self._auth: str = ''
         self._appkey: str = appkey
         self._secretkey: str = secretkey
+        self._session: Session = None
         self.init(appkey, secretkey)
 
     def init(self, appkey: str, secretkey: str):
@@ -28,7 +30,13 @@ class API:
         if isfile(secretkey):
             with open(secretkey, 'r') as f:
                 self._secretkey = f.read().strip()
+        if self._session:
+            try:
+                self._session.close()
+            except:
+                pass
         
+        self._session = Session()
         endpoint = '/oauth2/token'
         headers = self.headers(api_id='')
         data = {
@@ -72,7 +80,7 @@ class API:
 
         if not headers:
             headers = self.headers(api_id)
-        return requests.post(
+        return self._session.post(
             self.host + endpoint,
             headers=headers,
             json=data
