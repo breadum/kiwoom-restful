@@ -3,8 +3,8 @@ import asyncio
 import pandas as pd
 
 from datetime import datetime, timedelta
-from kiwoom import Kiwoom, REAL
-from kiwoom.config.candle import to_csv
+from kiwoom import Bot, REAL
+from kiwoom.proc.candle import to_csv
 
 
 def timer(fn):
@@ -18,20 +18,20 @@ def timer(fn):
 
 
 @timer
-def test_stock_tick(api):
+def test_stock_tick(bot):
     code = '005930_AL'
     start = datetime.today() - pd.tseries.offsets.BDay(1)
     start = start.strftime('%Y%m%d')
     end = start
     
     print(f'Tick({code=}, {start=}, {end=})')
-    df = asyncio.run(api.candle(code, 'tick', 'stock', start=start, end=end))
+    df = asyncio.run(bot.candle(code, 'tick', 'stock', start=start, end=end))
     print(df)
     return df
 
 
 @timer
-def test_stock_min(api):
+def test_stock_min(bot):
     code = '005930_AL'
     start = datetime.today() - timedelta(days=4)
     end = start + timedelta(days=1)
@@ -39,7 +39,7 @@ def test_stock_min(api):
     end = end.strftime('%Y%m%d')
 
     print(f'Min({code=}, {start=}, {end=})')
-    df = asyncio.run(api.candle(code, 'min', 'stock', start=start, end=end))
+    df = asyncio.run(bot.candle(code, 'min', 'stock', start=start, end=end))
     print(df)
     return df
 
@@ -86,7 +86,7 @@ def test_sector_min(api):
 
 
 @timer
-def test_sector_day(api):
+def test_sector_day(bot):
     code = '001'
     start = datetime.today() - timedelta(days=5)
     end = start + timedelta(days=1)
@@ -94,20 +94,20 @@ def test_sector_day(api):
     end = end.strftime('%Y%m%d')
 
     print(f'Day({code=}, {start=}, {end=})')
-    df = asyncio.run(api.candle(code, 'day', 'sector', start=start, end=end))
+    df = asyncio.run(bot.candle(code, 'day', 'sector', start=start, end=end))
     print(df)
     return df
 
 
 @timer
-def test_to_csv(api):
+def test_to_csv(bot):
     code = '005930_AL'
     start = datetime.today() - timedelta(days=3)
     start = start.strftime('%Y%m%d')
     end = start
     
     print(f'Min({code=}, {start=}, {end=})')
-    df = asyncio.run(api.candle(code, 'min', 'stock', start=start, end=end))
+    df = asyncio.run(bot.candle(code, 'min', 'stock', start=start, end=end))
     print(f"Save('./{code}.csv'")
     asyncio.run(to_csv(code, '.', df))
     print(df)
@@ -117,7 +117,7 @@ def test_to_csv(api):
 if __name__ == '__main__':
     appkey = '../keys/appkey.txt'
     scretkey = '../keys/secretkey.txt'
-    bot = Kiwoom(REAL, appkey, scretkey)
+    bot = Bot(REAL, appkey, scretkey)
     bot.debugging = False
 
     # Stock
