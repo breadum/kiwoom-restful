@@ -1,12 +1,5 @@
 import pandas as pd
 
-from os import getcwd, makedirs
-from os.path import isdir, exists, join
-from pathlib import Path
-
-from pandas import Timestamp
-from kiwoom.config.config import ENCODING
-
 
 PERIOD_TO_API_ID: dict[str, dict[str, str]] = {
     'stock': {
@@ -162,10 +155,10 @@ def handle_time(df, code: str, period: str) -> pd.DataFrame:
         replacer = _EXCEPTIONAL_DATETIME_REPLACER[code]
     
     # To handle delayed market openings (ex. 수능일)
-    date = lambda s: Timestamp(s).date()
+    date = lambda s: pd.Timestamp(s).date()
     start = date(df[col].iat[0][:len('YYYYMMDD')])
     end = date(df[col].iat[-1][:len('YYYYMMDD')])
-    delayed: dict[int, Timestamp] = dict()
+    delayed: dict[int, pd.Timestamp] = dict()
     for ymd, hour in DELAYED_MARKET_OPENING.items():
         if start <= date(ymd) <= end:
             # Add delayed hours to replacer
@@ -199,22 +192,3 @@ def valid(body: dict, period: str, ctype: str) -> bool:
     dummy: bool = (len(body[key]) == 1) and \
                   (not body[key][0]['cur_prc'])
     return not (empty or dummy)
-
-
-async def to_csv(file: str, path: str, df: pd.DataFrame):
-    # Validate
-    if df.empty:
-        return
-    if path is None:
-        path = getcwd()
-    if not isdir(path):
-        raise ValueError(f"Path not valid: '{path}'")
-    if not exists(path):
-        makedirs(path)
-
-    # Save
-    file = file if file.endswith('.csv') else f'{file}.csv'
-    file = join(path, file)
-    if exists(file):
-        Path.unlink(file)
-    df.to_csv(file, encoding=ENCODING)

@@ -16,7 +16,7 @@ STATUS_CODE = {
 # 1. 조회횟수 초당 5건
 # 2. 주문횟수 초당 5건
 # 3. 실시간 조건검색 개수 로그인 1개당 10건
-REQ_LIMIT_TIME: float = 0.21  # sec
+REQ_LIMIT_TIME: float = 0.205  # sec
 
 # Time
 KST: timezone = timezone(timedelta(hours=9))
