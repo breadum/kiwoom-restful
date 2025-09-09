@@ -1,5 +1,5 @@
 site_name: kiwoom-restful
-site-_url: https://github.com/breadum/kiwoom-restful
+site_url: https://github.com/breadum/kiwoom-restful
 
 theme:
   name: material
