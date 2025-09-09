@@ -10,7 +10,7 @@ on:
   workflow_dispatch:  # 수동 실행 허용
     inputs:
       tag:
-        description: "Tag starting with v{version}"
+        description: "Tag v{version}. ex) v1.2.3"
         required: true
 
 permissions:
@@ -56,6 +56,6 @@ jobs:
 
       - name: Deploy docs with mike
         run: |
-          mike deploy --push --update-aliases "{{ steps.v.outputs.VER }}" latest
+          mike deploy --push --update-aliases "${{ steps.v.outputs.VER }}" latest
           mike set-default --push latest
         
