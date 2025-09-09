@@ -33,6 +33,9 @@ jobs:
 
       - name: Install docs toolchain
         run: pip install mkdocs mkdocs-material mkdocstrings[python] mike
+      
+      - name: Install project
+        run: pip install -e .
 
       - name: Configure git identity for gh-pages commits
         run: |
