@@ -1,0 +1,9 @@
+[
+  {
+    "version": "{{ steps.v.outputs.VER }}",
+    "title": "{{ steps.v.outputs.VER }}",
+    "aliases": [
+      "latest"
+    ]
+  }
+]
