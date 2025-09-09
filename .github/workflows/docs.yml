@@ -35,10 +35,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Compute version from release tag
+      - name: Resolve version
         id: v
         run: |
-          TAG="${{ github.event.release.tag_name }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${{ github.event.release.tag_name }}"
+          fi
           VER="${TAG#v}"
           echo "VER=$VER" >> $GITHUB_OUTPUT
 
