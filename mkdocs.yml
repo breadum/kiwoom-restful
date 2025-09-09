@@ -18,5 +18,7 @@ plugins:
         python:
           options:
             docstring_style: google
-            separate_signatrue: true
+            show_root_heading: true
             show_source: true
+            show_if_no_docstring: true
+            separate_signatrue: true

@@ -17,6 +17,7 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 
 requires-python = ">=3.10"
@@ -25,11 +26,14 @@ dependencies = [
     "pandas>=2",
     "numpy>=2",
     "requests>=2.32",
+    "websockets>=15.0.1",
+    "msgspec>=0.19.0",
+    "orjson>=3.11.3",
 ]
 
 [project.urls]
 Homepage = "https://github.com/breadum/kiwoom-restful"
-Documentation = "https://github.com/breadum/kiwoom-restful/blob/main/README.md"
+Documentation = "https://breadum.github.io/kiwoom-restful/"
 Repository = "https://github.com/breadum/kiwoom-restful"
 Download = " https://pypi.org/project/kiwoom-restful"
 Issues = "https://github.com/breadum/kiwoom-restful/issues"
@@ -40,16 +44,42 @@ build-backend = "pdm.backend"
 
 [tool.pdm]
 distribution = true
-package-dir = "kiwoom"
+use_uv = true
 
 [tool.pdm.version]
 source = "file"
 path = "kiwoom/__version__.py"
 
+[tool.pdm.build]
+package-dir = "."
+includes = ["kiwoom"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+# PEP8(E,W,F), Import 정렬(I), 기본 버그패턴(B)
+select = ["E", "F", "W", "I", "B"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+
 [dependency-groups]
 dev = [
     "IPython>=8.37.0",
+    "ipykernel>=6.30.1",
+]
+lint = [
+    "ruff>=0.12.12",
 ]
 publish = [
     "twine>=6.1.0",
+]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocstrings[python]>=0.30.0",
+    "mkdocs-material>=9.6.19",
 ]
