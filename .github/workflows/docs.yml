@@ -8,6 +8,10 @@ on:
   release:
     types: [ published ]  # GitHub UI에서 Release를 Publish할 때만 동작
   workflow_dispatch:  # 수동 실행 허용
+    inputs:
+      tag:
+        description: "Tag starting with v{version}"
+        required: true
 
 permissions:
   contents: write  # gh-pages에 커밋 푸시 필요
