@@ -1,10 +1,5 @@
 [
   {
-    "version": "{{ steps.v.outputs.VER }}",
-    "title": "{{ steps.v.outputs.VER }}",
-    "aliases": []
-  },
-  {
     "version": "0.1.0",
     "title": "0.1.0",
     "aliases": [
