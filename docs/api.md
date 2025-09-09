@@ -1,2 +1,2 @@
 # API Reference  
-::: kiwoom-restful
+::: kiwoom
