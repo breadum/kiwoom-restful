@@ -10,7 +10,7 @@ on:
   workflow_dispatch:  # 수동 실행 허용
 
 permissions:
-  contents: read  # gh-pages에 커밋 푸시 필요
+  contents: write  # gh-pages에 커밋 푸시 필요
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
