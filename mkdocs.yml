@@ -40,11 +40,12 @@ plugins:
       handlers:
         python:
           options:
+            members: __all__
             show_source: false
             separate_signature: true
             docstring_style: google
             show_root_heading: true
-            show_if_no_docstring: true
+            show_if_no_docstring: false
             members_order: source
           
             filters:
