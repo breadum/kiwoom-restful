@@ -3,6 +3,25 @@ site_url: https://github.com/breadum/kiwoom-restful
 
 theme:
   name: material
+  # palette:
+  #   - scheme: default
+  #     primary: indigo
+  #     accent: indigo
+  #   - scheme: slate
+  #     primary: teal
+  #     accent: teal
+  # features:
+  #   - navigation.tabs
+  #   - navigation.top
+  #   - search.highlight
+  #   - search.suggest
+  # palette:
+  #   - scheme: default
+  #     primary: blue
+  #     accent: orange
+  #   - scheme: slate
+  #     primary: deep purple
+  #     accent: pink
 
 extra:
   version: 
@@ -17,8 +36,14 @@ plugins:
       handlers:
         python:
           options:
+            show_source: false
+            separate_signature: true
             docstring_style: google
             show_root_heading: true
-            show_source: true
             show_if_no_docstring: true
-            separate_signatrue: true
+            members_order: source
+          
+            filters:
+              - "!^__all__$"  # __all__ 숨김
+              - "!^__.*__$"   # dunder 변수 숨김
+              - "!^_"         # private 멤버 숨김
