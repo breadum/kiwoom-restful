@@ -1,16 +1,16 @@
 from os import getcwd, makedirs
-from os.path import isdir, exists, join
+from os.path import exists, isdir, join
 from pathlib import Path
 
 from pandas import DataFrame
 
 from kiwoom.config import ENCODING
 from kiwoom.config.candle import (
-    valid, 
+    COLUMN_MAPPER_CANDLE,
+    PERIOD_TO_BODY_KEY,
+    PERIOD_TO_COLUMN,
     handle_time,
-    PERIOD_TO_COLUMN, 
-    PERIOD_TO_BODY_KEY, 
-    COLUMN_MAPPER_CANDLE
+    valid,
 )
 
 
@@ -23,7 +23,6 @@ def process(
     start: str,
     end: str,
 ) -> DataFrame:
-
     columns: list[str] = PERIOD_TO_COLUMN[period]
     if not valid(data, period, ctype):
         # Returns empty dataframe
@@ -42,18 +41,13 @@ def process(
     df = handle_time(df, code, period)
     df.set_index(time, drop=True, inplace=True)
     if not df.index.is_monotonic_increasing:
-        df = df.sort_index(kind='stable')
+        df = df.sort_index(kind="stable")
     df = df.astype(int).abs()
     df = df.loc[start:end]
     return df
 
 
-async def to_csv(
-    file: str, 
-    path: str, 
-    df: DataFrame, 
-    encoding: str = ENCODING
-) -> None:
+async def to_csv(file: str, path: str, df: DataFrame, encoding: str = ENCODING) -> None:
     # Validate
     if df.empty:
         return
@@ -65,8 +59,8 @@ async def to_csv(
         makedirs(path)
 
     # Save
-    if not file.endswith('.csv'):
-        file = f'{file}.csv'
+    if not file.endswith(".csv"):
+        file = f"{file}.csv"
     file = join(path, file)
     if exists(file):
         Path.unlink(file)
