@@ -25,10 +25,9 @@ packages = "kiwoom"
 dependencies = [
     "pandas>=2",
     "numpy>=2",
-    "requests>=2.32",
-    "websockets>=15.0.1",
     "msgspec>=0.19.0",
     "orjson>=3.11.3",
+    "aiohttp[speedups]>=3.12.15",
 ]
 
 [project.urls]
@@ -44,7 +43,6 @@ build-backend = "pdm.backend"
 
 [tool.pdm]
 distribution = true
-use_uv = true
 
 [tool.pdm.version]
 source = "file"
@@ -57,11 +55,17 @@ includes = ["kiwoom"]
 [tool.ruff]
 target-version = "py310"
 line-length = 100
-
 [tool.ruff.lint]
 # PEP8(E,W,F), Import 정렬(I), 기본 버그패턴(B)
 select = ["E", "F", "W", "I", "B"]
-
+ignore = [
+    "D100",  # public module docstring 
+    "D104",  # public package docstring
+    "D107",  # docstring in __init__
+    "E731",  # lambda 제한 해제
+]
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
