@@ -1,5 +1,6 @@
 site_name: kiwoom-restful
-site_url: https://github.com/breadum/kiwoom-restful
+site_url: https://breadum.github.io/kiwoom-restful/
+use_directory_urls: true
 
 theme:
   name: material
@@ -26,12 +27,15 @@ theme:
 extra:
   version: 
     provider: mike
+    default: latest
 
 nav:
   - Home: index.md
   - API: api.md
 
 plugins:
+  - search
+  - mike
   - mkdocstrings:
       handlers:
         python:
