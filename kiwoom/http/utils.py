@@ -1,48 +1,69 @@
-import json
+import asyncio
+from typing import Callable
 
-from requests.models import Response
-from requests.exceptions import HTTPError
+from kiwoom.config.http import REQ_LIMIT_PER_SECOND
 
-
-@staticmethod
-def dumps(api, endpoint: str, api_id, headers: dict, data: dict, res: Response) -> str:
-    # Request
-    headers = json.dumps(
-        headers if headers else api.headers(api_id),
-        indent=4,
-        ensure_ascii=False
-    )
-    req = '\n== Request ==\n'
-    req += f'URL : {api.host + endpoint}\n'
-    req += f'Headers : {headers}\n'
-    req += f'Data : {json.dumps(data, indent=4, ensure_ascii=False)}\n'
-
-    # Response
-    headers = json.dumps(
-        {key: res.headers.get(key) for key in ['next-key', 'cont-yn', 'api-id']},
-        indent=4,
-        ensure_ascii=False
-    )
-    resp = '== Response ==\n'
-    resp += f'Code : {res.status_code}\n'
-    resp += f'Headers : {headers}\n'
-    resp += f'Response : {json.dumps(res.json(), indent=4, ensure_ascii=False)}\n'
-    return req + resp
+__all__ = ["RateLimiter", "wrap_async_callback", "wrap_sync_callback"]
 
 
-@staticmethod
-def debugger(fn):
-    async def wrapper(api, endpoint, api_id, headers, data):
-        res = await fn(api, endpoint, api_id, headers, data)
-        if getattr(api, "debugging"):
-            print(dumps(api, endpoint, api_id, headers, data, res))
-        
-        try:
-            res.raise_for_status()
-        except HTTPError as err:
-            # Always debug when error occurs
-            if not getattr(api, "debugging"):
-                print(dumps(api, endpoint, api_id, headers, data, res))
-            raise err
-        return res
+class RateLimiter:
+    def __init__(self, rps: int = REQ_LIMIT_PER_SECOND):
+        """
+        Globally limits requests per second.
+
+        Args:
+            rps (float): requests per second
+        """
+        self._period = 1.0 / rps
+        self._loop = asyncio.get_running_loop()
+        self._lock = asyncio.Lock()
+        self._next = 0.0
+
+    async def acquire(self):
+        async with self._lock:
+            now = self._loop.time()
+            if self._next < now:
+                self._next = now
+            wait = self._next - now
+            self._next += self._period
+
+        if wait > 0:
+            await asyncio.sleep(wait)
+
+
+def wrap_async_callback(semaphore: asyncio.Semaphore, callback: Callable):
+    """
+    Wrap async callback to run in async context.
+
+    Args:
+        semaphore (asyncio.Semaphore): semaphore to limit the number of callbacks
+        callback (Callable): callback to be wrapped
+
+    Returns:
+        Callable: wrapped callback
+    """
+
+    async def wrapper(raw: str):
+        async with semaphore:
+            await callback(raw)
+
+    return wrapper
+
+
+def wrap_sync_callback(semaphore: asyncio.Semaphore, callback: Callable):
+    """
+    Wrap sync callback to run in async context.
+
+    Args:
+        semaphore (asyncio.Semaphore): semaphore to limit the number of callbacks
+        callback (Callable): callback to be wrapped
+
+    Returns:
+        Callable: wrapped callback
+    """
+
+    async def wrapper(raw: str):
+        async with semaphore:
+            await asyncio.get_running_loop().run_in_executor(None, callback, raw)
+
     return wrapper

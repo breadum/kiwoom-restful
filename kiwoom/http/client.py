@@ -1,177 +1,283 @@
 import asyncio
-
-from typing import Callable
-from os.path import isfile
 from itertools import chain
+from os.path import isfile
+from typing import Callable
 
-from requests import Session
-from requests.models import Response
+import aiohttp
+from aiohttp import ClientSession
 
-from kiwoom.config import REQ_LIMIT_TIME
-from kiwoom.http import utils as Http
+from kiwoom.config.http import (
+    HTTP_CONNECT_TIMEOUT,
+    HTTP_READ_TIMEOUT,
+    HTTP_TCP_CONNECTORS,
+    HTTP_TOTAL_TIMEOUT,
+)
+from kiwoom.http.debug import debugger, dumps
+from kiwoom.http.response import Response
+from kiwoom.http.utils import RateLimiter
 
 
 class Client:
     def __init__(self, host: str, appkey: str, secretkey: str):
-        self.debugging: bool = False
         self.host: str = host
-        self._auth: str = ''
+        self.debugging: bool = False
+
+        self._auth: str = ""
         self._appkey: str = appkey
         self._secretkey: str = secretkey
-        self._session: Session = None
-        self.init(appkey, secretkey)
 
-    def init(self, appkey: str, secretkey: str):
+        self._lock: asyncio.Lock = asyncio.Lock()
+        self._ready: asyncio.Event = asyncio.Event()
+        self._limiter: RateLimiter = RateLimiter()
+        self._session: ClientSession = None
+
+    async def ready(self):
         """
-        appkey, scretkey : string | file path
+        Check connection and request limits.
+        if timeout, raise TimeoutError.
+        """
+        try:
+            await asyncio.wait_for(self._ready.wait(), HTTP_TOTAL_TIMEOUT)
+        except asyncio.TimeoutError as err:
+            msg = f"Connection timeout: waited for {HTTP_TOTAL_TIMEOUT} seconds."
+            raise RuntimeError(msg) from err
+        await self._limiter.acquire()
+
+    async def connect(self, appkey: str, secretkey: str):
+        """
+        Connect to the server with async lock
+
+        Args:
+            appkey (str): file path or raw appkey
+            secretkey (str): file path or raw secretkey
         """
         if isfile(appkey):
-            with open(appkey, 'r') as f:
+            with open(appkey, "r") as f:
                 self._appkey = f.read().strip()
         if isfile(secretkey):
-            with open(secretkey, 'r') as f:
+            with open(secretkey, "r") as f:
                 self._secretkey = f.read().strip()
-        if self._session:
-            try:
-                self._session.close()
-            except:
-                pass
-        
-        self._session = Session()
-        endpoint = '/oauth2/token'
-        headers = self.headers(api_id='')
-        data = {
-            'grant_type': 'client_credentials',
-            'appkey': self._appkey,
-            'secretkey': self._secretkey
-        }
-        res = self._session.post(
-            self.host + endpoint,
-            headers=headers,
-            json=data
-        )
-        res.raise_for_status()
-        data = res.json()
-        token = data['token']
-        self._auth = f'Bearer {token}'
+
+        async with self._lock:
+            if self._ready.is_set():
+                return
+            if self._session and not self._session.closed:
+                await self._session.close()
+
+            self._session = ClientSession(
+                timeout=aiohttp.ClientTimeout(
+                    total=HTTP_TOTAL_TIMEOUT,
+                    sock_connect=HTTP_CONNECT_TIMEOUT,
+                    sock_read=HTTP_READ_TIMEOUT,
+                ),
+                connector=aiohttp.TCPConnector(
+                    limit=HTTP_TCP_CONNECTORS, enable_cleanup_closed=True
+                ),
+            )
+            endpoint = "/oauth2/token"
+            headers = self.headers(api_id="")
+            data = {
+                "grant_type": "client_credentials",
+                "appkey": self._appkey,
+                "secretkey": self._secretkey,
+            }
+            async with self._session.post(self.host + endpoint, headers=headers, json=data) as res:
+                res.raise_for_status()
+                data = await res.json()
+
+            token = data["token"]
+            self._auth = f"Bearer {token}"
+            self._session.headers.update(
+                {
+                    "Content-Type": "application/json;charset=UTF-8",
+                    "authorization": self._auth,
+                }
+            )
+            self._ready.set()
+
+    async def close(self):
+        self._ready.clear()
+        if self._session and not self._session.closed:
+            await asyncio.shield(self._session.close())
+
+        self._auth = ""
+        self._appkey = ""
+        self._secretkey = ""
+        self._session = None
+
+    def token(self) -> str:
+        """
+        Returns token if available, otherwise returns empty string.
+
+        Raises:
+            ValueError: Invalid token.
+
+        Returns:
+            str: token
+        """
+        if not self._auth:
+            return ""
+        if "Bearer " in self._auth:
+            return self._auth[len("Bearer ") :]
+        raise ValueError(f"Invalid token: {self._auth}")
 
     def headers(
-        self, 
-        api_id: str, 
-        cont_yn: str = 'N', 
-        next_key: str = '',
-        headers: dict = {}
+        self, api_id: str, cont_yn: str = "N", next_key: str = "", headers: dict | None = None
     ) -> dict[str, str]:
-        
+        """
+        Generate headers for the request.
+
+        Args:
+            api_id (str): api id
+            cont_yn (str, optional): continue yn. Defaults to "N".
+            next_key (str, optional): next key. Defaults to "".
+            headers (dict | None, optional): headers of the request. Defaults to None.
+
+        Returns:
+            dict[str, str]: headers
+        """
         base = {
-            'Content-Type': 'application/json;charset=UTF-8',
-            'authorization': self._auth,
-            'cont-yn': cont_yn,
-            'next-key': next_key,
-            'api-id': api_id
+            # 'Content-Type': 'application/json;charset=UTF-8',
+            # 'authorization': self._auth,
+            "cont-yn": cont_yn,
+            "next-key": next_key,
+            "api-id": api_id,
         }
-        if headers:
+        if headers is not None:
             headers.update(base)
             return headers
-        return base 
-    
-    @Http.debugger
-    async def post(
-        self, 
-        endpoint: str, 
-        api_id: str, 
-        headers: dict = {}, 
-        data: dict = {}
-    ) -> Response:
+        return base
 
-        if not headers:
+    @debugger
+    async def post(
+        self, endpoint: str, api_id: str, headers: dict | None = None, data: dict | None = None
+    ) -> aiohttp.ClientResponse:
+        """
+        Post request to the server, but using client.request function is recommended.
+        Request limit and connection status are checked globally and automatically.
+
+        Args:
+            endpoint (str): endpoint of the server
+            api_id (str): api id
+            headers (dict | None, optional): headers of the request. Defaults to None.
+            data (dict | None, optional): data of the request. Defaults to None.
+
+        Returns:
+            aiohttp.ClientResponse: async response from the server,
+                but this will be converted to kiwoom.http.response.Response by debugger.
+        """
+
+        # Check connection and request limits
+        await self.ready()
+
+        # Post Request
+        if headers is None:
             headers = self.headers(api_id)
-        return self._session.post(
-            self.host + endpoint,
-            headers=headers,
-            json=data
-        )
-    
+        return await self._session.post(self.host + endpoint, headers=headers, json=data)
+
     async def request(
-        self, 
-        endpoint: str, 
-        api_id: str, 
-        headers: dict = {}, 
-        data: dict = {}
+        self, endpoint: str, api_id: str, headers: dict | None = None, data: dict | None = None
     ) -> Response:
-        
-        res = await self.post(endpoint, api_id, headers=headers, data=data)
+        """
+        Requests to the server and returns response with error handling.
+
+        Args:
+            endpoint (str): endpoint of the server
+            api_id (str): api id
+            headers (dict | None, optional): headers of the request. Defaults to None.
+            data (dict | None, optional): data of the request. Defaults to None.
+
+        Raises:
+            RuntimeError: RuntimeError when return_code is not in [0, 3, 20]
+
+        Returns:
+            Response: response wrapped by kiwoom.http.response.Response
+        """
+
+        res: Response = await self.post(endpoint, api_id, headers=headers, data=data)
         body = res.json()
-        if 'return_code' in body:
-            match body['return_code']:
+        if "return_code" in body:
+            match body["return_code"]:
                 case 0 | 20:
                     # 0: Success
                     # 20 : No Data
                     return res
                 case 3:
                     # 3 : Token Expired
-                    await self.init(self._appkey, self._secretkey)
-                    return await self.request(
-                        endpoint, 
-                        api_id, 
-                        headers=headers, 
-                        data=data
-                    )
-        
+                    self._ready.clear()
+                    print("Token expired, trying to refresh token...")
+                    await self.connect(self._appkey, self._secretkey)
+                    return await self.request(endpoint, api_id, headers=headers, data=data)
+
         # Request Failure
-        msg = Http.dumps(self, endpoint, api_id, headers, data, res)
-        raise RuntimeError(msg)
-    
+        return_code = body["return_code"]
+        err = f"\nRequest failed with {return_code=}, not in {{'0', '3', '20'}}."
+        if not self.debugging:
+            msg = dumps(self, endpoint, api_id, headers, data, res)
+            raise RuntimeError(msg + err)
+        raise RuntimeError(err)
+
     async def request_until(
-        self, 
+        self,
         should_continue: Callable,
-        endpoint: str, 
-        api_id: str, 
-        headers: dict = {}, 
-        data: dict = {},
+        endpoint: str,
+        api_id: str,
+        headers: dict | None = None,
+        data: dict | None = None,
     ) -> dict:
         """
         Request until 'cont-yn' in response header is 'Y',
         and should_continue(body) evaluates to True.
 
-        * should_continue : callable that takes body(dict) and \
-                            returns boolean value to request again or not
+        Args:
+            should_continue (Callable):
+                callable that takes body(dict) and
+                returns boolean value to request again or not
+            endpoint (str):
+                endpoint of the server
+            api_id (str):
+                api id
+            headers (dict | None, optional):
+                headers of the request. Defaults to None.
+            data (dict | None, optional):
+                data of the request. Defaults to None.
+
+        Returns:
+            dict: response body
         """
-        await asyncio.sleep(REQ_LIMIT_TIME)
+
+        # Initial request
         res = await self.request(endpoint, api_id, headers=headers, data=data)
         body = res.json()
-        
-        # Condition to chain is not met
+
+        # If condition to chain is not met
         if callable(should_continue) and not should_continue(body):
             return body
-        
+
+        # Extract list data only
         bodies = dict()
         for key in body.keys():
             if isinstance(body[key], list):
                 bodies[key] = [body[key]]
                 continue
             bodies[key] = body[key]
-        
-        while res.headers.get('cont-yn') == 'Y' and should_continue(body):
-            next_key = res.headers.get('next-key')
-            headers = self.headers(
-                api_id, 
-                cont_yn='Y', 
-                next_key=next_key, 
-                headers=headers
-            )
-            
-            # Rercursive call
-            await asyncio.sleep(REQ_LIMIT_TIME)
+
+        # Rercursive call
+        while res.headers.get("cont-yn") == "Y" and should_continue(body):
+            next_key = res.headers.get("next-key")
+            headers = self.headers(api_id, cont_yn="Y", next_key=next_key, headers=headers)
+
+            # Continue request
             res = await self.request(endpoint, api_id, headers=headers, data=data)
             body = res.json()
-            
+
+            # Append list data
             for key in body.keys():
                 if isinstance(body[key], list):
                     bodies[key].append(body[key])
-        
+
+        # Flatten list data as if it was one list
         for key in bodies:
             if isinstance(bodies[key], list):
                 bodies[key] = list(chain.from_iterable(bodies[key]))
         return bodies
-    
