@@ -4,30 +4,14 @@ use_directory_urls: true
 
 theme:
   name: material
-  # palette:
-  #   - scheme: default
-  #     primary: indigo
-  #     accent: indigo
-  #   - scheme: slate
-  #     primary: teal
-  #     accent: teal
-  # features:
-  #   - navigation.tabs
-  #   - navigation.top
-  #   - search.highlight
-  #   - search.suggest
-  # palette:
-  #   - scheme: default
-  #     primary: blue
-  #     accent: orange
-  #   - scheme: slate
-  #     primary: deep purple
-  #     accent: pink
 
 extra:
   version: 
     provider: mike
     default: latest
+
+extra_css:
+  - css/extra.css
 
 nav:
   - Home: index.md
@@ -39,16 +23,15 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
+          paths: ["."]
           options:
             members: __all__
-            show_source: false
+            members_order: source
+            show_source: true
+            show_submodules: true
             separate_signature: true
             docstring_style: google
-            show_root_heading: true
-            show_if_no_docstring: false
-            members_order: source
-          
+            show_if_no_docstring: true
             filters:
               - "!^__all__$"  # __all__ 숨김
-              - "!^__.*__$"   # dunder 변수 숨김
-              - "!^_"         # private 멤버 숨김
+              - "!^_"  # _ private 숨김
