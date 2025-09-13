@@ -81,8 +81,12 @@ class Client:
         async with self._session.post(self.host + endpoint, headers=headers, json=data) as res:
             res.raise_for_status()
             data = await res.json()
+            resp = Response(res)
 
         # Set token
+        if "token" not in data:
+            msg = dumps(self, endpoint, headers, data, resp)
+            raise RuntimeError(f"Failed to get token: {msg}")
         token = data["token"]
         self._auth = f"Bearer {token}"
         self._session.headers.update(
