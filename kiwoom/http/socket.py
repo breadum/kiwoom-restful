@@ -4,7 +4,8 @@ import contextlib
 import orjson
 from aiohttp import ClientSession, ClientWebSocketResponse, WSMessageTypeError, WSMsgType
 
-from kiwoom.config.http import WEBSOCKET_HEARTBEAT
+from kiwoom.config.http import WEBSOCKET_HEARTBEAT, State
+from kiwoom.http.utils import cancel
 
 
 class Socket:
@@ -21,13 +22,15 @@ class Socket:
             queue (asyncio.Queue): queue to put received data
         """
         self.url = url
-        self._lock: asyncio.Lock = asyncio.Lock()
-        self._stop: asyncio.Event = asyncio.Event()
-
         self._queue = queue
-        self._task: asyncio.Task | None = None
         self._session: ClientSession | None = None
         self._websocket: ClientWebSocketResponse | None = None
+
+        self._state = State.CLOSED
+        self._state_lock = asyncio.Lock()
+        self._queue_task: asyncio.Task | None = None
+        self._stop_event = asyncio.Event()
+        self._stop_event.set()
 
     async def connect(self, session: ClientSession, token: str):
         """
@@ -38,47 +41,52 @@ class Socket:
             token (str): token for authentication
         """
 
-        try:
-            print("Trying to connect websocket...")
-            async with self._lock:
-                if not self._stop.is_set():
-                    return
+        # print("Trying to connect websocket...")
+        async with self._state_lock:
+            if self._state in (State.CONNECTED, State.CONNECTING):
+                return
+
+            self._state = State.CONNECTING
+            try:
+                # Close existing websocket & task
+                self._stop_event.set()
                 if self._websocket and not self._websocket.closed:
                     await self._websocket.close()
-                if self._task:
-                    self._task.cancel()
-                    with contextlib.suppress(asyncio.CancelledError):
-                        await self._task
+                await cancel(self._queue_task)
+                self._queue_task = None
 
                 self._session = session
                 self._websocket = await session.ws_connect(
                     self.url, autoping=True, heartbeat=WEBSOCKET_HEARTBEAT
                 )
-                self._task = asyncio.create_task(self.run(), name="enqueue_msg")
-                await self.send({"trnm": "LOGIN", "token": token})
-                self._stop.clear()
 
-        except Exception as e:
-            print(f"Websocket failed to connect to {self.url}: {e}")
-            self.close()
+                self._stop_event.clear()
+                self._queue_task = asyncio.create_task(self.run(), name="enqueue")
+                await self.send({"trnm": "LOGIN", "token": token})
+                self._state = State.CONNECTED
+
+            except Exception as err:
+                print(f"Websocket failed to connect to {self.url}: {err}")
+                self._state = State.CLOSED
 
     async def close(self):
         """
         Close the websocket and the task.
         """
-        self._stop.set()
-        if self._websocket and not self._websocket.closed:
-            with contextlib.suppress(Exception):
-                print("Closing websocket..")
-                await self._websocket.close()
-        if self._task:
-            self._task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await self._task
+        async with self._state_lock:
+            self._stop_event.set()
+            if self._queue_task:
+                self._queue_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await self._queue_task
 
-        self._task = None
-        self._session = None
-        self._websocket = None
+            if self._websocket and not self._websocket.closed:
+                with contextlib.suppress(Exception):
+                    await self._websocket.close()
+
+            self._session = None
+            self._websocket = None
+            self._queue_task = None
 
     async def send(self, msg: str | dict) -> None:
         """
@@ -120,7 +128,7 @@ class Socket:
         """
         assert self._websocket is not None
         try:
-            while not self._stop.is_set():
+            while not self._stop_event.is_set():
                 await self._queue.put(await self.recv())
 
         except Exception as e:

@@ -1,9 +1,10 @@
 import asyncio
+import contextlib
 from typing import Callable
 
 from kiwoom.config.http import REQ_LIMIT_PER_SECOND
 
-__all__ = ["RateLimiter", "wrap_async_callback", "wrap_sync_callback"]
+__all__ = ["cancel", "RateLimiter", "wrap_async_callback", "wrap_sync_callback"]
 
 
 class RateLimiter:
@@ -31,7 +32,7 @@ class RateLimiter:
             await asyncio.sleep(wait)
 
 
-def wrap_async_callback(semaphore: asyncio.Semaphore, callback: Callable):
+def wrap_async_callback(semaphore: asyncio.Semaphore, callback: Callable) -> Callable:
     """
     Wrap async callback to run in async context.
 
@@ -50,7 +51,7 @@ def wrap_async_callback(semaphore: asyncio.Semaphore, callback: Callable):
     return wrapper
 
 
-def wrap_sync_callback(semaphore: asyncio.Semaphore, callback: Callable):
+def wrap_sync_callback(semaphore: asyncio.Semaphore, callback: Callable) -> Callable:
     """
     Wrap sync callback to run in async context.
 
@@ -67,3 +68,16 @@ def wrap_sync_callback(semaphore: asyncio.Semaphore, callback: Callable):
             await asyncio.get_running_loop().run_in_executor(None, callback, raw)
 
     return wrapper
+
+
+async def cancel(task: asyncio.Task | None) -> None:
+    """
+    Cancel a task if it exists.
+
+    Args:
+        task (asyncio.Task | None): task to be cancelled
+    """
+    if task:
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task

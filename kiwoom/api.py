@@ -17,85 +17,137 @@ from kiwoom.config.candle import (
     PERIOD_TO_TIME_KEY,
     valid,
 )
+from kiwoom.config.http import State
 from kiwoom.config.real import Real
 from kiwoom.config.trade import (
     REQUEST_LIMIT_DAYS,
 )
-from kiwoom.http import utils
 from kiwoom.http.client import Client
 from kiwoom.http.socket import Socket
+from kiwoom.http.utils import (
+    cancel,
+    wrap_async_callback,
+    wrap_sync_callback,
+)
 
 
 class API(Client):
     """
-    Request and Receive data with Kiwoom REST API
+    Kiwoom REST API 서버와 직접 요청과 응답을 주고받는 클래스입니다.
+
+    데이터 조회, 주문 요청 등 저수준 통신을 담당하며,
+    직접 API 스펙을 구현하여 활용합니다.
     """
 
     def __init__(self, host: str, appkey: str, secretkey: str):
+        """
+        API 클래스 인스턴스를 초기화합니다.
+
+        Args:
+            host (str): 실서버 / 모의서버 도메인
+            appkey (str): 파일경로 / 앱키
+            secretkey (str): 파일경로 / 시크릿키
+
+        Raises:
+            ValueError: 유효하지 않은 도메인
+        """
         match host:
             case config.REAL:
-                url = Socket.REAL + Socket.ENDPOINT
+                wss_url = Socket.REAL + Socket.ENDPOINT
             case config.MOCK:
-                url = Socket.MOCK + Socket.ENDPOINT
+                wss_url = Socket.MOCK + Socket.ENDPOINT
             case _:
                 raise ValueError(f"Invalid host: {self.host}")
 
         super().__init__(host, appkey, secretkey)
-        self.url = url
         self.queue = asyncio.Queue()
-        self.socket: Socket = Socket(url=url, queue=self.queue)
+        self.socket = Socket(url=wss_url, queue=self.queue)
 
-        self._lock: asyncio.Lock = asyncio.Lock()
-        self._read_socket_task: asyncio.Task = None
-        self._stop_task_event: asyncio.Event = asyncio.Event()
+        self._state = State.CLOSED
+        self._state_lock = asyncio.Lock()
+        self._recv_task: asyncio.Task | None = None
+        self._stop_event = asyncio.Event()
+        self._stop_event.set()
 
-        self.connected: bool = False
-        self._semaphore: asyncio.Semaphore = asyncio.Semaphore(
-            config.http.WEBSOCKET_MAX_CONCURRENCY
-        )
-        self._callbacks = defaultdict(
-            lambda: utils.wrap_sync_callback(self._semaphore, lambda msg: print(msg))
-        )
+        self._sem = asyncio.Semaphore(config.http.WEBSOCKET_MAX_CONCURRENCY)
+        async_print = wrap_sync_callback(self._sem, lambda msg: print(msg))
+        self._callbacks = defaultdict(lambda: async_print)
         self._add_default_callback_on_real_data()
 
     async def connect(self):
-        await super().connect(self._appkey, self._secretkey)
-        if not (token := self.token()):
-            raise RuntimeError("Not connected: token is not available.")
-
-        if self._read_socket_task and not self._read_socket_task.done():
-            self._stop_task_event.set()
-            self._read_socket_task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await self._read_socket_task
-
-        self.socket._stop.set()
-        await self.socket.connect(self._session, token)
-
-        self._stop_task_event.clear()
-        self._read_socket_task = asyncio.create_task(
-            self._on_receive_websocket(), name="read_socket"
-        )
-
-    async def close(self):
-        # FIXME
-        self._stop_task_event.set()
-
-        await self.socket.close()
-        await super().close()
-
-    async def stock_list(self, market: str):
         """
-        Get stock list of codes for given market code.
-
-        Args:
-            market (str): market code.
+        키움 REST API HTTP 서버와 Websocket 서버에 접속하고 토큰을 발급받습니다.
 
         Raises:
-            ValueError: No data is available for given market code.
+            RuntimeError: 토큰을 발급받지 못한 경우
+            Exception: 예상하지 못한 에러
+        """
+        async with self._state_lock:
+            if self._state in (State.CONNECTED, State.CONNECTING):
+                return
+
+            self._state = State.CONNECTING
+            try:
+                # Cancel existing task
+                self._stop_event.set()
+                await cancel(self._recv_task)
+
+                # Connect http server
+                await super().connect(self._appkey, self._secretkey)
+                if not (token := self.token()):
+                    raise RuntimeError("Not connected: token is not available.")
+
+                # Connect websocket server
+                await self.socket.connect(self._session, token)
+
+                # Run websocket receiving task
+                self._stop_event.clear()
+                self._recv_task = asyncio.create_task(self._on_receive_websocket(), name="dequeue")
+                self._state = State.CONNECTED
+
+            except Exception as err:
+                self._state = State.CLOSED
+                with contextlib.suppress(Exception):
+                    await self.socket.close()
+                with contextlib.suppress(Exception):
+                    await super().close()
+                raise Exception from err
+
+    async def close(self):
+        """
+        키움 REST API 서버와 연결을 해제하고 리소스를 정리합니다.
+        """
+        async with self._state_lock:
+            if self._state in (State.CLOSED, State.CLOSING):
+                return
+
+            self._state = State.CLOSING
+            try:
+                # Cancel existing task
+                self._stop_event.set()
+                await cancel(self._recv_task)
+                self._recv_task = None
+
+                # Close websocket server
+                await self.socket.close()
+                # Close http server
+                await super().close()
+
+            finally:
+                self._state = State.CLOSED
+
+    async def stock_list(self, market: str) -> dict:
+        """
+        주어진 market 코드에 대해 'ka10099' API 요청을 하고 응답을 반환합니다.
+
+        Args:
+            market (str): 조회할 주식 시장코드
+
+        Raises:
+            ValueError: 종목코드 목록이 없을 경우
 
         Returns:
-            dict: http response containing stock codes
+            dict: 종목코드 목록을 포함하는 응답
         """
         endpoint = "/api/dostk/stkinfo"
         api_id = "ka10099"
@@ -115,20 +167,24 @@ class API(Client):
         end: str = None,
     ) -> dict:
         """
-        Candle chart data
+        주어진 코드, 기간, 종목/업종 유형에 해당하는 API 요청을 하고 응답을 반환합니다.
+
+        "stock": {"tick": "ka10079", "min": "ka10080", "day": "ka10081"}
+
+        "sector": {"tick": "ka20004", "min": "ka20005", "day": "ka20006"}
 
         Args:
-            code (str): code of stock or sector, e.g. '005930_AL'.
-            period (str): period of candle, {"tick", "min", "day"}.
-            ctype (str): type of stock or sector, {"stock", "sector"}.
-            start (str, optional): start date in YYYYMMDD format. Defaults to None.
-            end (str, optional): end date in YYYYMMDD format. Defaults to None.
+            code (str): 종목코드 / 업종코드
+            period (str): 캔들 기간유형, {"tick", "min", "day"}.
+            ctype (str): 종목 / 업종 유형, {"stock", "sector"}.
+            start (str, optional): 시작일자 in YYYYMMDD format.
+            end (str, optional): 종료일자 in YYYYMMDD format.
 
         Raises:
-            ValueError: Invalid 'ctype' or 'period'
+            ValueError: 유효하지 않은 'ctype' 또는 'period'
 
         Returns:
-            dict: raw candle data
+            dict: 캔들 데이터를 포함하는 json 응답
         """
 
         ctype = ctype.lower()
@@ -167,15 +223,19 @@ class API(Client):
 
     async def trade(self, start: str, end: str = "") -> list[dict]:
         """
-        계좌 체결내역 (키움증권 0343 화면)
-        최근 2개월만 조회 가능
+        주어진 시작일자와 종료일자에 해당하는 체결내역을
+        키움증권 '0343' 계좌 체결내역 화면과 동일한 구성으로 반환합니다.
+        데이터 조회 제한으로 최근 2개월 데이터만 조회할 수 있습니다.
+
+        체결내역 데이터는 [알파노트](http://alphanote.io)를 통해
+        간편하게 진입/청산 시각화 및 성과 지표들을 확인할 수 있습니다.
 
         Args:
-            start (str): start date in YYYYMMDD format
-            end (str, optional): end date in YYYYMMDD format
+            start (str): 시작일자 in YYYYMMDD format
+            end (str, optional): 종료일자 in YYYYMMDD format
 
         Returns:
-            list[dict]: raw trade data
+            list[dict]: 체결내역 데이터를 포함하는 json 응답 리스트
         """
         endpoint = "/api/dostk/acnt"
         api_id = "kt00009"
@@ -211,33 +271,34 @@ class API(Client):
 
     def add_callback_on_real_data(self, real_type: str, callback: Callable) -> None:
         """
-        Add callback function on live stream websocket data where trnm is 'REAL'.
+        실시간 데이터 수신 시 호출될 콜백 함수를 추가합니다. (trnm이 'REAL'인 경우)
 
-        Suppose that fn = lambda msg: print(msg), which takes msg and simply prints.
-        - add_callback_on_real_data(real_type='OB', fn=fn)
-            printing is applied when tick data(type 'OB') has been received.
+        * callback 함수는 서버 응답 string 그대로를 인자로 받습니다.
+        * real_type을 'PING' 또는 'LOGIN'으로 설정하면 기본 콜백 함수를 덮어씁니다.
 
-        You may add callback function on 'PING' and 'LOGIN' as well,
-        by setting real_type to 'PING' or 'LOGIN'.
+        콜백 함수는 비동기 콜백 함수를 추가하는 것을 권장합니다.
+        비동기 및 동기 콜백 함수 모두 루프를 블로킹하지 않도록
+        백그라운드에서 실행됩니다. 따라서 데이터 처리 완료 순서가 반드시
+        데이터 수신 순서에 따라 실행되지 않을 수 있습니다.
 
-        Asynchronous callback function is recommended. Async and sync callback
-        functions are both running in background, not in blocking way.
+        ex) tick 체결 데이터 (type 'OB')가 수신될 때마다 데이터 출력하기
 
-        If async callback function wrapped with lambda function, it will never
-        be awaited. Use 'async def wrapper(callback: Callable)' instead.
+            > fn = lambda raw: print(raw)
+
+            > add_callback_on_real_data(real_type='OB', callback=fn)
 
         Args:
-            real_type (str, None): real type described in Kiwoom REST API.
-            callback (Callable): callback function takes raw msg str as an argument
+            real_type (str): 키움 REST API에 정의된 실시간 데이터 타입
+            callback (Callable): raw 스트링을 인자로 받는 콜백 함수
         """
 
         real_type = real_type.upper()
-        # Asnyc
+        # Asnyc Callback
         if iscoroutinefunction(callback):
-            self._callbacks[real_type] = utils.wrap_async_callback(self._semaphore, callback)
+            self._callbacks[real_type] = wrap_async_callback(self._sem, callback)
         # Sync Callback
         else:
-            self._callbacks[real_type] = utils.wrap_sync_callback(self._semaphore, callback)
+            self._callbacks[real_type] = wrap_sync_callback(self._sem, callback)
 
     def _add_default_callback_on_real_data(self) -> None:
         """
@@ -269,7 +330,7 @@ class API(Client):
             Exception: Exception raised by the callback function or decoder
         """
         decoder = msgspec.json.Decoder(type=Real)
-        while not self._stop_task_event.is_set():
+        while not self._stop_event.is_set():
             try:
                 raw: str = await self.queue.get()
             except asyncio.CancelledError:
@@ -285,7 +346,6 @@ class API(Client):
                         asyncio.create_task(self._callbacks[msg.trnm](raw))
 
             except Exception as err:
-                await self.close()
                 raise Exception("Failed to handling websocket data.") from err
 
             finally:
@@ -298,15 +358,12 @@ class API(Client):
         refresh: str = "1",
     ) -> None:
         """
-        (실시간시세 > 주식체결 '0B')
-        Register transactions with given grp_no and codes with refresh option.
+        주어진 그룹번호와 종목 코드에 대해 주식체결 데이터를 등록합니다. (타입 '0B')
 
         Args:
             grp_no (str): 그룹번호
-            codes (list[str]): 종목코드
-            refresh (str, optional):
-                기존등록유지여부(기존유지:'1', 신규등록:'0').
-                Defaults to '1'.
+            codes (list[str]): 종목코드 리스트
+            refresh (str, optional): 기존등록유지여부 (기존유지:'1', 신규등록:'0').
         """
 
         assert len(codes) <= 100, f"Max 100 codes per group, got {len(codes)} codes."
@@ -331,15 +388,12 @@ class API(Client):
         refresh: str = "1",
     ) -> None:
         """
-        (실시간시세 > 주식호가잔량 '0D')
-        Register order book with given grp_no and codes with refresh option.
+        주어진 그룹번호와 종목 코드에 대해 주식호가잔량 데이터를 등록합니다. (타입 '0D')
 
         Args:
             grp_no (str): 그룹번호
-            codes (list[str]): 종목코드
-            refresh (str, optional):
-                기존등록유지여부(기존유지:'1', 신규등록:'0').
-                Defaults to '1'.
+            codes (list[str]): 종목코드 리스트
+            refresh (str, optional): 기존등록유지여부 (기존유지:'1', 신규등록:'0').
         """
 
         assert len(codes) <= 100, f"Max 100 codes per group, got {len(codes)} codes."
@@ -359,12 +413,11 @@ class API(Client):
 
     async def remove_register(self, grp_no: str, type: str | list[str]) -> None:
         """
-        Remove registered group with given grp_no and real tr type.
-        if types is empty, nothing is done.
+        주어진 그룹번호와 실시간 데이터 타입에 대해 등록된 데이터를 제거합니다.
 
         Args:
             grp_no (str): 그룹번호
-            type (str | list[str]): 실시간 데이터 타입 e.g. (0B, 0D, DD)
+            type (str | list[str]): 실시간 데이터 타입 ex) '0B', '0D', 'DD'
         """
         if not grp_no or not type:
             return
