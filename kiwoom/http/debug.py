@@ -1,5 +1,6 @@
 import functools
 import json
+from typing import Callable
 
 from aiohttp import ClientResponse
 from aiohttp.web import HTTPException
@@ -46,7 +47,7 @@ def dumps(api, endpoint: str, api_id, headers: dict, data: dict, res: Response) 
     return req + resp
 
 
-def debugger(fn):
+def debugger(fn) -> Callable:
     """
     Debugger decorator for Client.post method.
     Even though debugging is disabled, it will print if error occurs.
