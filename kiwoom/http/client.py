@@ -72,7 +72,8 @@ class Client:
 
         # Request token
         endpoint = "/oauth2/token"
-        headers = self.headers(api_id="")
+        api_id = ""
+        headers = self.headers(api_id)
         data = {
             "grant_type": "client_credentials",
             "appkey": self._appkey,
@@ -85,7 +86,7 @@ class Client:
 
         # Set token
         if "token" not in body:
-            msg = dumps(self, endpoint, headers, data, resp)
+            msg = dumps(self, endpoint, api_id, headers, data, resp)
             raise RuntimeError(f"Failed to get token: {msg}")
         token = body["token"]
         self._auth = f"Bearer {token}"
