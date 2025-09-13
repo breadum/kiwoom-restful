@@ -1,3 +1,17 @@
+from enum import Enum, auto
+
+__all__ = [
+    "REQ_LIMIT_TIME",
+    "REQ_LIMIT_PER_SECOND",
+    "HTTP_TOTAL_TIMEOUT",
+    "HTTP_CONNECT_TIMEOUT",
+    "HTTP_READ_TIMEOUT",
+    "HTTP_TCP_CONNECTORS",
+    "WEBSOCKET_HEARTBEAT",
+    "WEBSOCKET_MAX_CONCURRENCY",
+    "State",
+]
+
 # Kiwoom REST API Request Limit Policy
 #   API 호출 횟수 제한 정책은 다음 각 호와 같다.
 #       1. 조회횟수 초당 5건
@@ -14,6 +28,19 @@ HTTP_TCP_CONNECTORS: int = 100
 
 WEBSOCKET_HEARTBEAT: int = 30
 WEBSOCKET_MAX_CONCURRENCY: int = 1000
+
+
+# Connection State
+class State(Enum):
+    """
+    Connection State
+    """
+
+    CONNECTING = auto()
+    CONNECTED = auto()
+    CLOSING = auto()
+    CLOSED = auto()
+
 
 # Http Response Status Code
 STATUS_CODE = {200: "OK", 400: "Bad Request", 404: "Not Found", 500: "Internal Server Error"}
