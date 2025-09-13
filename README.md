@@ -4,6 +4,7 @@ Simple Python Wrapper for Kiwoom RESTful API
 ## What is it?
 * 키움증권에서 제공하는 'REST' API 인터페이스 사용을 위한 간단한 Python Wrapper 모듈
 * 네트워크 프로토콜 디테일은 숨기고 투자 전략 로직에 집중할 수 있도록 설계
+* 직접 개발하고자 하는 사람을 위한 모듈로 부가적인 기능은 최대한 배제
 * 현재 개발 단계는 RC(Release Candidate)로 구조적인 설계 마무리 단계
 * 'REST' API가 아닌 기존 PyQt 기반 OCX 방식 API는 [이곳][ocx]을 참조
 
@@ -20,11 +21,11 @@ Simple Python Wrapper for Kiwoom RESTful API
 
 ## Features
 * 간결한 API를 통한 빠른 프로토 타입 및 전략 최적화
-* Http 요청 및 응답 + Websocket 실시간 데이터 처리
-* 실시간 데이터 처리 루프와 비블로킹 콜백
-* msgpsec/orjson 기반 실시간 고속 json 파싱
+* Async Http 요청 및 응답 + Websocket 데이터 처리
+* 실시간 데이터 처리를 위한 non-블로킹 콜백 시스템 
+* msgpsec / orjson 기반 실시간 고속 json 파싱
 * 초당 Http 연결/호출 제한 자동관리
-* Websocket Ping - Pong 자동처리
+* Websocket ping-pong 자동처리
 
 모듈 관련 상세한 API 문서 페이지는 [이곳][doc]을 참고해 주세요.
 
@@ -45,7 +46,65 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 ```
 
 ## Examples
-HTTP 데이터 교환 구현 예시
+기본적인 API 구현 및 Bot 활용예시
+```python
+from kiwoom import API, Bot
+from kiwoom.http import Response
+
+# API 상세 구현
+class MyAPI(API):
+    def __init__(self, host:str, appkey: str, secretkey: str):
+        super().__init__(host, appkey, secretkey)
+    
+    # 증권사별매매상위요청
+    async def what_stocks_ebest_bought_today(self) -> list[dict]:
+        endpoint = '/api/dostk/rkinfo'
+        api_id = 'ka10039'
+        data = {
+            'mmcm_cd': '063',    # 회원사코드
+            'trde_qty_tp': '0',  # 거래량구분 (전체 '0')
+            'trde_tp': '1',      # 매매구분 (순매수 '1')    
+            'dt': '0',           # 기간 (당일 '0')
+            'stex_tp': '3'       # 거래소구분 (통합 '3')
+        }
+        # 다음 데이터가 있으면 무조건 계속 요청
+        should_continue = lambda res: True  
+        # 키움 REST API 서버 응답 데이터 취합 후 반환
+        res: dict = await self.request_until(
+            should_continue, 
+            endpoint, 
+            api_id, 
+            data=data
+        )
+        key = 'sec_trde_upper'
+        if key in res:
+            return res[key]
+        return []  # or raise Exception
+
+# API 활용 클래스
+class MyBot(Bot):
+    def __init__(self, host: str, appkey: str, secretkey: str):
+        super().__init__(
+            host, appkey, secretkey, 
+            api=MyAPI(host, appkey, secretkey) 
+        )
+        self.blacklist: set[str] = set()
+
+    async def add_to_blacklist(self) -> None:
+        data = await self.api.what_stocks_ebest_bought_today()
+        ETFs = ("KODEX", "TIGER", "RISE")
+        top10 = data[:10]
+        for item in top10:
+            # Roughly skip ETFs
+            name = item["stk_nm"]
+            if any(etf in name for etf in ETFs):
+                continue
+
+            self.blacklist.add(item["stk_cd"])
+```
+
+
+Bot 기본 내장함수 2가지 활용예시
 ```python
 import asyncio
 from kiwoom import Bot
@@ -71,11 +130,12 @@ class MyBot(Bot):
         start = start.strftime(fmt)
         end = end.strftime(fmt)
         trs = self.trade(start, end)
-        # 키움증권 0343 매매내역 화면 저장
+
+        # 키움증권 0343 매매내역 화면 스타일로 저장
         await trade.to_csv('trade.csv', './', trs)
 ```
 
-Websocket 실시간 데이터 요청 구현 예시
+Websocket 실시간 데이터 요청 구현예시
 ```python
 import asyncio
 import orjson
@@ -83,8 +143,8 @@ import pandas as pd
 from kiwoom import Bot
 
 class MyBot(Bot):
-    def __init__(self, host: str, appkey: str, scretkey: str):
-        super().__init__(host, appkey, scretkey)
+    def __init__(self, host: str, appkey: str, secretkey: str):
+        super().__init__(host, appkey, secretkey)
         self.ticks: list[dict[str, str]] = []
 
     async def on_receive_order_book(raw: str):
@@ -146,13 +206,14 @@ import asyncio
 from kiwoom import Bot, REAL
 
 async def main():
-    # appkey, scretkey 파일 위치 예시
+    # appkey, secretkey 파일 위치 예시
     appkey = "../keys/appkey.txt"
-    scretkey = "../keys/secretkey.txt"
+    secretkey = "../keys/secretkey.txt"
 
-    # async with context 사용을 통한 자동 연결 및 리소스 관리
-    async with MyBot(host=REAL, appkey, scretkey) as bot:
-        bot.debugging = True  # 요청 및 응답 프린트
+    # context 사용을 통한 연결 및 리소스 관리
+    async with MyBot(host=REAL, appkey, secretkey) as bot:
+        bot.debug(True)  # 요청 및 응답 프린트
+        await bot.connect()
         await bot.run()
 
     # context 외부는 자동 연결 해제
@@ -169,11 +230,11 @@ Layered Roles
 * Socket : WebSocket 연결 및 수명 관리, 데이터 수신 후 asyncio.Queue에 전달
 
 * API : 
-  * 기본적인 REST API Http 요청 및 응답 관리
-  * Queue를 소비하며 Ping/Pong, Login 및 데이터 디코딩 수행
-  * 실시간 데이터 주제별 스트림/콜백/구독 관리
+    * 기본적인 REST API Http 요청 및 응답 관리
+    * Queue를 소비하며 ping-pong, login 및 데이터 디코딩 수행
+    * 실시간 데이터 주제별 스트림/콜백/구독 관리
 
-* Bot : API 기능을 활용하여 전략을 수행하도록 사용자 구현 
+* Bot : API 기능을 활용하여 전략을 수행하도록 사용자가 구현 
 
 ## License
 [MIT License][mit] © Contributors
@@ -181,9 +242,10 @@ Layered Roles
 ## Disclaimer
 * 본 프로젝트는 키움증권 공식 프로젝트가 아닙니다.
 * 실제 운용 전 모의 테스트 환경에서 충분히 검증 바랍니다.
+* 발생한 어떠한 손실에 대하여도 본 프로젝트의 개발자는 책임이 없음을 알립니다.
 
 
 
 [ocx]: https://github.com/breadum/kiwoom
-[doc]: https://breadum.github.io/kiwoom-restful/latest/
+[doc]: https://breadum.github.io/kiwoom-restful/latest/api
 [mit]: https://github.com/breadum/kiwoom-restful?tab=MIT-1-ov-file
