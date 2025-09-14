@@ -49,10 +49,10 @@ async def to_csv(file: str, path: str, df: DataFrame, encoding: str = ENCODING):
         return
     if not path:
         path = getcwd()
-    if not isdir(path):
-        raise ValueError(f"Path not valid: '{path}'")
     if not exists(path):
         makedirs(path)
+    if not isdir(path):
+        raise ValueError(f"Path not valid: '{path}'")
 
     # Save
     if not file.endswith(".csv"):
