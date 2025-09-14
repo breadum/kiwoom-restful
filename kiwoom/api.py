@@ -17,8 +17,8 @@ from kiwoom.config.candle import (
     PERIOD_TO_TIME_KEY,
     valid,
 )
-from kiwoom.config.http import State
-from kiwoom.config.real import Real
+from kiwoom.config.http import WEBSOCKET_QUEUE_MAX_SIZE, State
+from kiwoom.config.real import RealData, RealType
 from kiwoom.config.trade import (
     REQUEST_LIMIT_DAYS,
 )
@@ -60,7 +60,7 @@ class API(Client):
                 raise ValueError(f"Invalid host: {self.host}")
 
         super().__init__(host, appkey, secretkey)
-        self.queue = asyncio.Queue()
+        self.queue = asyncio.Queue(maxsize=WEBSOCKET_QUEUE_MAX_SIZE)
         self.socket = Socket(url=wss_url, queue=self.queue)
 
         self._state = State.CLOSED
@@ -306,14 +306,13 @@ class API(Client):
         """
 
         # Ping
-        async def callback_on_ping(raw: str):
-            await self.socket.send(raw)
+        async def callback_on_ping(msg: dict):
+            await self.socket.send(msg)
 
         self.add_callback_on_real_data(real_type="PING", callback=callback_on_ping)
 
         # Login
-        def callback_on_login(raw: str):
-            msg = orjson.loads(raw)
+        def callback_on_login(msg: dict):
             if msg.get("return_code") != 0:
                 raise RuntimeError(f"Login failed with return_code not zero, {msg}.")
             print(msg)
@@ -324,12 +323,14 @@ class API(Client):
         """
         Receive websocket data and dispatch to the callback function.
         Decoder patially checks 'trnm' and 'type' in order to speed up.
-        Note that the argument to callback function is raw string, not decoded data.
+
+        If trnm is "REAL", the argument to callback function is RealData instance.
+        Otherwise, the argument to callback function is json dict.
 
         Raises:
             Exception: Exception raised by the callback function or decoder
         """
-        decoder = msgspec.json.Decoder(type=Real)
+        decoder = msgspec.json.Decoder(type=RealType)
         while not self._stop_event.is_set():
             try:
                 raw: str = await self.queue.get()
@@ -338,12 +339,17 @@ class API(Client):
 
             try:
                 msg = decoder.decode(raw)  # partially decoded for speed up
-                match msg.trnm:
-                    case "REAL":
-                        for data in msg.data:
-                            asyncio.create_task(self._callbacks[data.type](raw))
-                    case _:
-                        asyncio.create_task(self._callbacks[msg.trnm](raw))
+                if msg.trnm == "REAL":
+                    for data in msg.data:
+                        asyncio.create_task(
+                            self._callbacks[data.type](
+                                RealData(bytes(data.values), data.type, data.name, data.item)
+                            )
+                        )
+                    continue
+
+                dic = orjson.loads(raw)
+                asyncio.create_task(self._callbacks[msg.trnm](dic))
 
             except Exception as err:
                 raise Exception("Failed to handling websocket data.") from err

@@ -3,6 +3,7 @@ import contextlib
 from typing import Callable
 
 from kiwoom.config.http import REQ_LIMIT_PER_SECOND
+from kiwoom.config.real import RealData
 
 __all__ = ["cancel", "RateLimiter", "wrap_async_callback", "wrap_sync_callback"]
 
@@ -44,9 +45,9 @@ def wrap_async_callback(semaphore: asyncio.Semaphore, callback: Callable) -> Cal
         Callable: wrapped callback
     """
 
-    async def wrapper(raw: str):
+    async def wrapper(msg: RealData | dict):
         async with semaphore:
-            await callback(raw)
+            await callback(msg)
 
     return wrapper
 
@@ -63,9 +64,9 @@ def wrap_sync_callback(semaphore: asyncio.Semaphore, callback: Callable) -> Call
         Callable: wrapped callback
     """
 
-    async def wrapper(raw: str):
+    async def wrapper(msg: RealData | dict):
         async with semaphore:
-            await asyncio.get_running_loop().run_in_executor(None, callback, raw)
+            await asyncio.get_running_loop().run_in_executor(None, callback, msg)
 
     return wrapper
 
