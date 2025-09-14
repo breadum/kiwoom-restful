@@ -1,4 +1,5 @@
 import asyncio
+import warnings
 from itertools import chain
 from os.path import isfile
 from typing import Callable
@@ -11,6 +12,7 @@ from kiwoom.config.http import (
     HTTP_READ_TIMEOUT,
     HTTP_TCP_CONNECTORS,
     HTTP_TOTAL_TIMEOUT,
+    State,
 )
 from kiwoom.http.debug import debugger, dumps
 from kiwoom.http.response import Response
@@ -36,6 +38,7 @@ class Client:
         self._appkey: str = appkey
         self._secretkey: str = secretkey
 
+        self._state_http = State.CLOSED
         self._ready_event = asyncio.Event()
         self._limiter: RateLimiter = RateLimiter()
         self._session: ClientSession = None
@@ -96,6 +99,7 @@ class Client:
                 "authorization": self._auth,
             }
         )
+        self._state_http = State.CONNECTED
         self._ready_event.set()
 
     async def close(self) -> None:
@@ -185,7 +189,11 @@ class Client:
                 but this will be converted to kiwoom.http.response.Response by debugger.
         """
 
-        # Check connection and request limits
+        # Warn not connected
+        if not self._state_http == State.CONNECTED:
+            warnings.warn("Not connected, wait for timeout...", RuntimeWarning, stacklevel=1)
+
+        # Wait connection and request limits
         await self.ready()
 
         # Post Request
