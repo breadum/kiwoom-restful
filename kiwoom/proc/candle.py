@@ -9,6 +9,7 @@ from kiwoom.config.candle import (
     COLUMN_MAPPER_CANDLE,
     PERIOD_TO_BODY_KEY,
     PERIOD_TO_COLUMN,
+    PERIOD_TO_DTYPES,
     handle_time,
     valid,
 )
@@ -42,7 +43,7 @@ def process(
     df.set_index(time, drop=True, inplace=True)
     if not df.index.is_monotonic_increasing:
         df = df.sort_index(kind="stable")
-    df = df.astype(int).abs()
+    df = df.astype(PERIOD_TO_DTYPES[period]).abs()
     df = df.loc[start:end]
     return df
 

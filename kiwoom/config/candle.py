@@ -1,5 +1,11 @@
 import pandas as pd
 
+PERIOD_TO_DTYPES: dict[str, dict[str, type]] = {
+    "tick": {"체결가": int, "거래량": float},
+    "min": {"시가": int, "고가": int, "저가": int, "종가": int, "거래량": float},
+    "day": {"시가": int, "고가": int, "저가": int, "종가": int, "거래량": float, "거래대금": float},
+}
+
 PERIOD_TO_API_ID: dict[str, dict[str, str]] = {
     "stock": {"tick": "ka10079", "min": "ka10080", "day": "ka10081"},
     "sector": {"tick": "ka20004", "min": "ka20005", "day": "ka20006"},
