@@ -4,3 +4,4 @@ Release Notes
 0.1.0 Release initial code based on REST API basic structure
 0.2.0 Handle live websocket stream and implement async callback system
 0.2.1 Return 'RealData' a wrapper object for real-time data instead of raw json string
+0.2.2 Add warnings to check connection status and safe guards for closing

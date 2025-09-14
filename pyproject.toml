@@ -32,7 +32,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/breadum/kiwoom-restful"
-Documentation = "https://breadum.github.io/kiwoom-restful/"
+Documentation = "https://breadum.github.io/kiwoom-restful/latest/api"
 Repository = "https://github.com/breadum/kiwoom-restful"
 Download = " https://pypi.org/project/kiwoom-restful"
 Issues = "https://github.com/breadum/kiwoom-restful/issues"
