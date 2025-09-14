@@ -140,25 +140,33 @@ import asyncio
 import orjson
 import pandas as pd
 from kiwoom import Bot
+from kiwoom.config.real import RealData
 
 class MyBot(Bot):
     def __init__(self, host: str, appkey: str, secretkey: str):
         super().__init__(host, appkey, secretkey)
         self.ticks: list[dict[str, str]] = []
 
-    async def on_receive_order_book(raw: str):
+    async def on_receive_order_book(msg: RealData):
         # 호가 데이터 처리 콜백함수 예시
-        # msg = json.loads(raw) # slow
-        msg = orjson.loads(raw) # fast
+        # RealData(
+        #   values: bytes  # utf-8 encoded bytes
+        #   type: str,     # API type (ex. 0B, 0D, ...)
+        #   name: str,     # API name (ex. 주식체결, 주식호가잔량, ...)
+        #   item: str      # 종목코드
+        # )
+        # values는 기호에 맞게 parsing 해서 사용
+        # msg.values = json.loads(msg.values) # slow
+        msg.values = orjson.loads(msg.values) # fast
         print(
-            f"종목코드: {msg['item']}, "
-            f"최우선매도호가: {msg['values']['41']}"
-            f"최우선매수호가: {msg['values']['51']}"
+            f"종목코드: {msg.item}, "
+            f"최우선매도호가: {msg.values['41']}"
+            f"최우선매수호가: {msg.values['51']}"
         )
     
-    async def on_receive_tick(raw: str):
+    async def on_receive_tick(msg: RealData):
         # 체결 데이터 처리 콜백함수 예시
-        self.list.append(orjson.loads(raw))
+        self.list.append(orjson.loads(msg.values))
         if len(self.list) >= 100:
             df = pd.DataFrame(self.list)
             print(df)
