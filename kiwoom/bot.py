@@ -1,10 +1,12 @@
 import asyncio
+import contextlib
 from typing import Self
 
 from pandas import DataFrame
 
 from kiwoom import proc
 from kiwoom.api import API
+from kiwoom.config.http import EXCEPTIONS_TO_SUPPRESS
 
 
 class Bot:
@@ -44,7 +46,8 @@ class Bot:
             exc_value (_type_): exception value
             traceback (_type_): traceback
         """
-        await self.close()
+        with contextlib.suppress(EXCEPTIONS_TO_SUPPRESS):
+            await asyncio.shield(self.close())
 
     def debug(self, debugging: bool = True) -> None:
         """
@@ -76,7 +79,7 @@ class Bot:
         """
         키움 REST API HTTP 서버 및 Websocket 서버 연결을 해제합니다.
         """
-        await self.api.close()
+        await asyncio.shield(self.api.close())
 
     async def stock_list(self, market: str, ats: bool = True) -> list[str]:
         """

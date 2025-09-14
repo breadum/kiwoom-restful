@@ -17,7 +17,7 @@ from kiwoom.config.candle import (
     PERIOD_TO_TIME_KEY,
     valid,
 )
-from kiwoom.config.http import WEBSOCKET_QUEUE_MAX_SIZE, State
+from kiwoom.config.http import EXCEPTIONS_TO_SUPPRESS, WEBSOCKET_QUEUE_MAX_SIZE, State
 from kiwoom.config.real import RealData, RealType
 from kiwoom.config.trade import (
     REQUEST_LIMIT_DAYS,
@@ -125,13 +125,16 @@ class API(Client):
             try:
                 # Cancel existing task
                 self._stop_event.set()
-                await cancel(self._recv_task)
+                with contextlib.suppress(EXCEPTIONS_TO_SUPPRESS):
+                    await asyncio.shield(cancel(self._recv_task))
                 self._recv_task = None
 
                 # Close websocket server
-                await self.socket.close()
+                with contextlib.suppress(EXCEPTIONS_TO_SUPPRESS):
+                    await asyncio.shield(self.socket.close())
                 # Close http server
-                await super().close()
+                with contextlib.suppress(EXCEPTIONS_TO_SUPPRESS):
+                    await asyncio.shield(super().close())
 
             finally:
                 self._state = State.CLOSED

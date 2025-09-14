@@ -1,3 +1,4 @@
+import asyncio
 from enum import Enum, auto
 
 __all__ = [
@@ -45,3 +46,6 @@ class State(Enum):
 
 # Http Response Status Code
 STATUS_CODE = {200: "OK", 400: "Bad Request", 404: "Not Found", 500: "Internal Server Error"}
+
+# Suppress exceptions to close gracefully
+EXCEPTIONS_TO_SUPPRESS = (asyncio.CancelledError, KeyboardInterrupt, Exception)
