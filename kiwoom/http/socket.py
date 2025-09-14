@@ -123,7 +123,8 @@ class Socket:
     async def run(self):
         """
         Receive data from websocket and put data to the queue.
-        If the websocket is closed, close the queue and the task.
+        If WEBSOCKET_QUEUE_MAX_SIZE is set and queue gets full,
+        then backpressure will be applied to the websocket.
         Run this task in background with asyncio.create_task().
         """
         assert self._websocket is not None
