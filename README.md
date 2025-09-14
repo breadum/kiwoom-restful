@@ -5,7 +5,6 @@ Simple Python Wrapper for Kiwoom RESTful API
 * 키움증권에서 제공하는 'REST' API 인터페이스 사용을 위한 간단한 Python Wrapper 모듈
 * 네트워크 프로토콜 디테일은 숨기고 투자 전략 로직에 집중할 수 있도록 설계
 * 직접 개발하고자 하는 사람을 위한 모듈로 부가적인 기능은 최대한 배제
-* 현재 개발 단계는 RC(Release Candidate)로 구조적인 설계 마무리 단계
 * 'REST' API가 아닌 기존 PyQt 기반 OCX 방식 API는 [이곳][ocx]을 참조
 
 ## Table of Contents
