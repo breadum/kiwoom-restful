@@ -161,6 +161,28 @@ class API(Client):
             raise ValueError(f"Stock list is not available for market code, {market}.")
         return body
 
+    async def sector_list(self, market: str) -> dict:
+        """
+        주어진 market 코드에 대해 'ka10101' API 요청을 하고 응답을 반환합니다.
+
+        Args:
+            market (str): 조회할 주식 시장코드
+
+        Raises:
+            ValueError: 업종코드 목록이 없을 경우
+
+        Returns:
+            dict: 업종코드 목록을 포함하는 응답
+        """
+        endpoint = "/api/dostk/stkinfo"
+        api_id = "ka10101"
+
+        res = await self.request(endpoint, api_id, data={"mrkt_tp": market})
+        body = res.json()
+        if not body["list"] or len(body["list"]) <= 1:
+            raise ValueError(f"Sector list is not available for sector code, {market}.")
+        return body
+
     async def candle(
         self,
         code: str,

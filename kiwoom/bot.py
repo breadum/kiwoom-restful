@@ -83,7 +83,7 @@ class Bot:
 
     async def stock_list(self, market: str, ats: bool = True) -> list[str]:
         """
-        주어진 market code에 해당하는 주식 종목코드 목록을 반환합니다.
+        주어진 market 코드에 해당하는 주식 종목코드 목록을 반환합니다.
 
         Args:
             market (str): {
@@ -106,6 +106,23 @@ class Bot:
 
         data = await self.api.stock_list(market)
         codes = proc.stock_list(data, ats)
+        return codes
+
+    async def sector_list(self, market: str) -> list[str]:
+        """
+        주어진 market 코드에 해당하는 업종코드 목록을 반환합니다.
+
+        Args:
+            market (str): {
+                '0': 'KOSPI', '1': 'KOSDAQ',
+                '2': 'KOSPI200', '4': 'KOSPI100(150)',
+                '7': 'KRX100'}
+
+        Returns:
+            list[str]: 업종코드 리스트
+        """
+        data = await self.api.sector_list(market)
+        codes = proc.sector_list(data)
         return codes
 
     async def candle(
