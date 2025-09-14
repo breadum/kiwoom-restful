@@ -5,7 +5,7 @@
 groups = ["default", "dev", "docs", "lint", "publish"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:4128d667465bf7084af215e48f6aa84660e34c9458f3814527807aabc1c62f0d"
+content_hash = "sha256:b0c20f53c56a18cf5c152fd0bff3079e38a9d6787d5e3a2a7105120c501224f5"
 
 [[metadata.targets]]
 requires_python = ">=3.10"
@@ -879,8 +879,7 @@ name = "importlib-metadata"
 version = "8.7.0"
 requires_python = ">=3.9"
 summary = "Read metadata from Python packages"
-groups = ["publish"]
-marker = "(platform_machine != \"ppc64le\" and platform_machine != \"s390x\") and python_version < \"3.12\""
+groups = ["docs", "publish"]
 dependencies = [
     "typing-extensions>=3.6.4; python_version < \"3.8\"",
     "zipp>=3.20",
@@ -888,6 +887,20 @@ dependencies = [
 files = [
     {file = "importlib_metadata-8.7.0-py3-none-any.whl", hash = "sha256:e5dd1551894c77868a30651cef00984d50e1002d06942a7101d34870c5f02afd"},
     {file = "importlib_metadata-8.7.0.tar.gz", hash = "sha256:d13b81ad223b890aa16c5471f2ac3056cf76c5f10f82d6f9292f0b415f389000"},
+]
+
+[[package]]
+name = "importlib-resources"
+version = "6.5.2"
+requires_python = ">=3.9"
+summary = "Read resources from Python packages"
+groups = ["docs"]
+dependencies = [
+    "zipp>=3.1.0; python_version < \"3.10\"",
+]
+files = [
+    {file = "importlib_resources-6.5.2-py3-none-any.whl", hash = "sha256:789cfdc3ed28c78b67a06acb8126751ced69a3d5f79c095a98298cd8a760ccec"},
+    {file = "importlib_resources-6.5.2.tar.gz", hash = "sha256:185f87adef5bcc288449d98fb4fba07cea78bc036455dd44c5fc4a2fe78fed2c"},
 ]
 
 [[package]]
@@ -1204,6 +1217,26 @@ groups = ["docs"]
 files = [
     {file = "mergedeep-1.3.4-py3-none-any.whl", hash = "sha256:70775750742b25c0d8f36c55aed03d24c3384d17c951b3175d898bd778ef0307"},
     {file = "mergedeep-1.3.4.tar.gz", hash = "sha256:0096d52e9dad9939c3d975a774666af186eda617e6ca84df4c94dec30004f2a8"},
+]
+
+[[package]]
+name = "mike"
+version = "2.1.3"
+summary = "Manage multiple versions of your MkDocs-powered documentation"
+groups = ["docs"]
+dependencies = [
+    "importlib-metadata",
+    "importlib-resources",
+    "jinja2>=2.7",
+    "mkdocs>=1.0",
+    "pyparsing>=3.0",
+    "pyyaml-env-tag",
+    "pyyaml>=5.1",
+    "verspec",
+]
+files = [
+    {file = "mike-2.1.3-py3-none-any.whl", hash = "sha256:d90c64077e84f06272437b464735130d380703a76a5738b152932884c60c062a"},
+    {file = "mike-2.1.3.tar.gz", hash = "sha256:abd79b8ea483fb0275b7972825d3082e5ae67a41820f8d8a0dc7a3f49944e810"},
 ]
 
 [[package]]
@@ -2092,6 +2125,17 @@ files = [
 ]
 
 [[package]]
+name = "pyparsing"
+version = "3.2.4"
+requires_python = ">=3.9"
+summary = "pyparsing - Classes and methods to define and execute parsing grammars"
+groups = ["docs"]
+files = [
+    {file = "pyparsing-3.2.4-py3-none-any.whl", hash = "sha256:91d0fcde680d42cd031daf3a6ba20da3107e08a75de50da58360e7d94ab24d36"},
+    {file = "pyparsing-3.2.4.tar.gz", hash = "sha256:fff89494f45559d0f2ce46613b419f632bbb6afbdaed49696d322bcf98a58e99"},
+]
+
+[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
@@ -2519,6 +2563,16 @@ files = [
 ]
 
 [[package]]
+name = "verspec"
+version = "0.1.0"
+summary = "Flexible version handling"
+groups = ["docs"]
+files = [
+    {file = "verspec-0.1.0-py3-none-any.whl", hash = "sha256:741877d5633cc9464c45a469ae2a31e801e6dbbaa85b9675d481cda100f11c31"},
+    {file = "verspec-0.1.0.tar.gz", hash = "sha256:c4504ca697b2056cdb4bfa7121461f5a0e81809255b41c03dda4ba823637c01e"},
+]
+
+[[package]]
 name = "watchdog"
 version = "6.0.0"
 requires_python = ">=3.9"
@@ -2671,8 +2725,7 @@ name = "zipp"
 version = "3.23.0"
 requires_python = ">=3.9"
 summary = "Backport of pathlib-compatible object wrapper for zip files"
-groups = ["publish"]
-marker = "(platform_machine != \"ppc64le\" and platform_machine != \"s390x\") and python_version < \"3.12\""
+groups = ["docs", "publish"]
 files = [
     {file = "zipp-3.23.0-py3-none-any.whl", hash = "sha256:071652d6115ed432f5ce1d34c336c0adfd6a884660d1e9712a256d3d3bd4b14e"},
     {file = "zipp-3.23.0.tar.gz", hash = "sha256:a07157588a12518c9d4034df3fbbee09c814741a33ff63c05fa29d26a2404166"},
