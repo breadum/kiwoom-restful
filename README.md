@@ -1,5 +1,5 @@
 # Kiwoom REST API
-Simple Python Wrapper for Kiwoom RESTful API   
+Simple Python Wrapper for Kiwoom RESTful API  
 
 ## What is it?
 * 키움증권에서 제공하는 'REST' API 인터페이스 사용을 위한 간단한 Python Wrapper 모듈
@@ -27,6 +27,7 @@ Simple Python Wrapper for Kiwoom RESTful API
 * Websocket ping-pong 자동처리
 
 모듈 관련 상세한 API 문서 페이지는 [이곳][doc]을 참고해 주세요.
+API에 변화가 없다면 구조상 큰 변화는 없을 예정입니다. (RC 단계)  
 
 ## Installation
 ```bash
@@ -37,11 +38,12 @@ pip install -U kiwoom-restful
 pip install -e ,
 ```
 Requirements
-* python 3.11+ recommended (at leaset 3.10+)
-* install uvloop is a plus for linux environment
+* python 3.11+ 권장 (최소 3.10+)
+* 리눅스 환경에서는 [uvloop][uvloop] 추가설치로 속도 향상 가능
 ```python
 import asyncio, uvloop
-asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+uvloop.install()
+asyncio.run(main())
 ```
 
 ## Examples
@@ -195,16 +197,16 @@ class MyBot(Bot):
         await self.api.register_hoga(grp_no='1', codes=codes1)
         await self.api.register_tick(grp_no='1', codes=codes1)
         
-        codes2 = kosdaq_codes[:100]
-        await self.api.register_hoga(grp_no='2', codes=codes2)
-
-        codes3 = kospi_codes[100:200]
-        await self.api.register_tick(grp_no='3', codes=codes1)
+        # 현재 키움증권 제한으로 100개 코드 지원
+        # codes2 = kosdaq_codes[:100]
+        # await self.api.register_hoga(grp_no='2', codes=codes2)
+        # codes3 = kospi_codes[100:200]
+        # await self.api.register_tick(grp_no='3', codes=codes1)
 
         # 데이터 수신 해제
         await self.api.remove_register(grp_no='1', type=['0B', '0D'])  
-        await self.api.remove_register(grp_no='2', type='0D')  # 호가 '0D'
-        await self.api.remove_register(grp_no='3', type='0B')  # 체결 '0B'
+        # await self.api.remove_register(grp_no='2', type='0D')  # 호가 '0D'
+        # await self.api.remove_register(grp_no='3', type='0B')  # 체결 '0B'
 ```
 
 실제 운영을 위한 스크립트 예시
@@ -255,4 +257,5 @@ Layered Roles
 
 [ocx]: https://github.com/breadum/kiwoom
 [doc]: https://breadum.github.io/kiwoom-restful/latest/api
+[uvloop]: https://github.com/MagicStack/uvloop
 [mit]: https://github.com/breadum/kiwoom-restful?tab=MIT-1-ov-file
