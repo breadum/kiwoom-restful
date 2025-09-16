@@ -26,9 +26,9 @@ Simple Python Wrapper for Kiwoom RESTful API
 * 초당 Http 연결/호출 제한 자동관리
 * Websocket ping-pong 자동처리
 
-모듈 관련 상세한 API 문서 페이지는 [이곳][doc]을 참고해 주세요.
+모듈 관련 상세한 API 문서 페이지는 [이곳][doc]을 참고해 주세요.  
 API에 변화가 없다면 구조상 큰 변화는 없을 예정입니다. (RC 단계)  
-
+  
 ## Installation
 ```bash
 # install from pypi
