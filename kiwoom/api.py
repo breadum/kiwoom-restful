@@ -442,7 +442,7 @@ class API(Client):
             }
         )
 
-    async def remove_register(self, grp_no: str, type: str | list[str]) -> None:
+    async def remove_register(self, grp_no: str, codes: list[str], type: str | list[str]) -> None:
         """
         주어진 그룹번호와 실시간 데이터 타입에 대해 등록된 데이터를 제거합니다.
 
@@ -455,5 +455,10 @@ class API(Client):
         if isinstance(type, str):
             type = [type]
         await self.socket.send(
-            {"trnm": "REMOVE", "grp_no": grp_no, "refresh": "", "data": [{"type": type}]}
+            {
+                "trnm": "REMOVE",
+                "grp_no": grp_no,
+                "refresh": "",
+                "data": [{"item": codes, "type": type}],
+            }
         )

@@ -204,7 +204,7 @@ class MyBot(Bot):
         # await self.api.register_tick(grp_no='3', codes=codes1)
 
         # 데이터 수신 해제
-        await self.api.remove_register(grp_no='1', type=['0B', '0D'])  
+        await self.api.remove_register(grp_no='1', codes1, type=['0B', '0D'])  
         # await self.api.remove_register(grp_no='2', type='0D')  # 호가 '0D'
         # await self.api.remove_register(grp_no='3', type='0B')  # 체결 '0B'
 ```
