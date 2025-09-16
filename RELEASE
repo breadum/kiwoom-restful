@@ -8,3 +8,4 @@ Release Notes
 0.2.3 Fix minor bug when saving csv files
 0.2.4 Update callback arg specs 'RealData' and add sector list function
 0.2.5 Update dataframe dtypes for candle data
+0.2.6 Set dynamic event loop in RateLimiter
