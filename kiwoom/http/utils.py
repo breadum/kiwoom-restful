@@ -17,13 +17,12 @@ class RateLimiter:
             rps (float): requests per second
         """
         self._period = 1.0 / rps
-        self._loop = asyncio.get_running_loop()
         self._lock = asyncio.Lock()
         self._next = 0.0
 
     async def acquire(self):
         async with self._lock:
-            now = self._loop.time()
+            now = asyncio.get_running_loop().time()
             if self._next < now:
                 self._next = now
             wait = self._next - now
