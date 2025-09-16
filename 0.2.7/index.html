@@ -1,0 +1,771 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://breadum.github.io/kiwoom-restful/0.2.7/">
+      
+      
+      
+        <link rel="next" href="api/">
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.20">
+    
+    
+      
+        <title>kiwoom-restful</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.e53b48f4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="css/extra.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#kiwoom-rest-api" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="kiwoom-restful" class="md-header__button md-logo" aria-label="kiwoom-restful" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            kiwoom-restful
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="kiwoom-restful" class="md-nav__button md-logo" aria-label="kiwoom-restful" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    kiwoom-restful
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      What is it?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      License
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#disclaimer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disclaimer
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      What is it?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      License
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#disclaimer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disclaimer
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="kiwoom-rest-api">Kiwoom REST API</h1>
+<p>Simple Python Wrapper for Kiwoom RESTful API   </p>
+<h2 id="what-is-it">What is it?</h2>
+<ul>
+<li>키움증권에서 제공하는 'REST' API 인터페이스 사용을 위한 간단한 Python Wrapper 모듈</li>
+<li>네트워크 프로토콜 디테일은 숨기고 투자 전략 로직에 집중할 수 있도록 설계</li>
+<li>직접 개발하고자 하는 사람을 위한 모듈로 부가적인 기능은 최대한 배제</li>
+<li>현재 개발 단계는 RC(Release Candidate)로 구조적인 설계 마무리 단계</li>
+<li>'REST' API가 아닌 기존 PyQt 기반 OCX 방식 API는 <a href="https://github.com/breadum/kiwoom">이곳</a>을 참조</li>
+</ul>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#kiwoom-rest-api">Kiwoom REST API</a></li>
+<li><a href="#what-is-it">What is it?</a></li>
+<li><a href="#table-of-contents">Table of Contents</a></li>
+<li><a href="#features">Features</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#examples">Examples</a></li>
+<li><a href="#architecture">Architecture</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#disclaimer">Disclaimer</a></li>
+</ul>
+<h2 id="features">Features</h2>
+<ul>
+<li>간결한 API를 통한 빠른 프로토 타입 및 전략 최적화</li>
+<li>Async Http 요청 및 응답 + Websocket 데이터 처리</li>
+<li>실시간 데이터 처리를 위한 non-블로킹 콜백 시스템 </li>
+<li>msgpsec / orjson 기반 실시간 고속 json 파싱</li>
+<li>초당 Http 연결/호출 제한 자동관리</li>
+<li>Websocket ping-pong 자동처리</li>
+</ul>
+<p>모듈 관련 상세한 API 문서 페이지는 <a href="https://breadum.github.io/kiwoom-restful/latest/api">이곳</a>을 참고해 주세요.<br />
+API에 변화가 없다면 구조상 큰 변화는 없을 예정입니다. (RC 단계)  </p>
+<h2 id="installation">Installation</h2>
+<pre><code class="language-bash"># install from pypi
+pip install -U kiwoom-restful
+
+# install from git fork/clone
+pip install -e ,
+</code></pre>
+<p>Requirements  </p>
+<ul>
+<li>python 3.11+ 권장 (최소 3.10+)</li>
+<li>리눅스 환경에서는 <a href="https://github.com/MagicStack/uvloop">uvloop</a> 추가설치로 속도 향상 가능</li>
+</ul>
+<pre><code class="language-python">import asyncio, uvloop
+uvloop.install()
+asyncio.run(main())
+</code></pre>
+<h2 id="examples">Examples</h2>
+<p>기본적인 API 구현 및 Bot 활용예시</p>
+<pre><code class="language-python">from kiwoom import API, Bot
+from kiwoom.http import Response
+
+# API 상세 구현
+class MyAPI(API):
+    def __init__(self, host:str, appkey: str, secretkey: str):
+        super().__init__(host, appkey, secretkey)
+
+    # 증권사별매매상위요청
+    async def what_stocks_ebest_bought_today(self) -&gt; list[dict]:
+        endpoint = '/api/dostk/rkinfo'
+        api_id = 'ka10039'
+        data = {
+            'mmcm_cd': '063',    # 회원사코드
+            'trde_qty_tp': '0',  # 거래량구분 (전체 '0')
+            'trde_tp': '1',      # 매매구분 (순매수 '1')    
+            'dt': '0',           # 기간 (당일 '0')
+            'stex_tp': '3'       # 거래소구분 (통합 '3')
+        }
+        # 다음 데이터가 있으면 무조건 계속 요청
+        should_continue = lambda res: True  
+        # 키움 REST API 서버 응답 데이터 취합 후 반환
+        res: dict = await self.request_until(
+            should_continue, 
+            endpoint, 
+            api_id, 
+            data=data
+        )
+        key = 'sec_trde_upper'
+        if key in res:
+            return res[key]
+        return []  # or raise Exception
+
+# API 활용 클래스
+class MyBot(Bot):
+    def __init__(self, host: str, appkey: str, secretkey: str):
+        super().__init__(
+            host, appkey, secretkey, 
+            api=MyAPI(host, appkey, secretkey) 
+        )
+        self.blacklist: set[str] = set()
+
+    async def add_to_blacklist(self) -&gt; None:
+        data = await self.api.what_stocks_ebest_bought_today()
+        ETFs = (&quot;KODEX&quot;, &quot;TIGER&quot;, &quot;RISE&quot;)
+        top10 = data[:10]
+        for item in top10:
+            # Roughly skip ETFs
+            name = item[&quot;stk_nm&quot;]
+            if any(etf in name for etf in ETFs):
+                continue
+
+            self.blacklist.add(item[&quot;stk_cd&quot;])
+</code></pre>
+<p>Bot 기본 내장함수 2가지 활용예시</p>
+<pre><code class="language-python">import asyncio
+from kiwoom import Bot
+from kiwoom.proc import candle, trade
+
+class MyBot(Bot):
+    async def run():
+        # 분봉차트 데이터
+        code = '005930_AL'  # 거래소 통합코드
+        df = await self.candle(
+                code=code, 
+                period='min',   # 'tick' | 'min' | 'day'
+                ctype='stock',  # 'stock' | 'sector'
+                start='20250901',
+                end='',
+        )
+        await candle.to_csv(file=f'{code}.csv', path='./', df)
+
+        # 계좌 체결내역 데이터 (최근 2달만)
+        fmt = '%Y%m%d'
+        today = datetime.today()
+        start = today - timedelta(days=60)
+        start = start.strftime(fmt)
+        end = end.strftime(fmt)
+        trs = self.trade(start, end)
+
+        # 키움증권 0343 매매내역 화면 스타일로 저장
+        await trade.to_csv('trade.csv', './', trs)
+</code></pre>
+<p>Websocket 실시간 데이터 요청 구현예시</p>
+<pre><code class="language-python">import asyncio
+import orjson
+import pandas as pd
+from kiwoom import Bot
+
+class MyBot(Bot):
+    def __init__(self, host: str, appkey: str, secretkey: str):
+        super().__init__(host, appkey, secretkey)
+        self.ticks: list[dict[str, str]] = []
+
+    async def on_receive_order_book(raw: str):
+        # 호가 데이터 처리 콜백함수 예시
+        # msg = json.loads(raw) # slow
+        msg = orjson.loads(raw) # fast
+        print(
+            f&quot;종목코드: {msg['item']}, &quot;
+            f&quot;최우선매도호가: {msg['values']['41']}&quot;
+            f&quot;최우선매수호가: {msg['values']['51']}&quot;
+        )
+
+    async def on_receive_tick(raw: str):
+        # 체결 데이터 처리 콜백함수 예시
+        self.list.append(orjson.loads(raw))
+        if len(self.list) &gt;= 100:
+            df = pd.DataFrame(self.list)
+            print(df)
+
+    async def run():
+        # 거래소 통합 종목코드 받아오기 
+        kospi, kosdaq = '0', '10'
+        kospi_codes = await bot.stock_list(kospi, ats=True)
+        kosdaq_codes = await bot.stock_list(kosdaq, ats=True)
+
+        # 호가 데이터 수신 시 콜백 등록
+        self.api.add_callback_on_real_data(
+            real_type=&quot;0D&quot;,  # 실시간시세 &gt; 주식호가잔량
+            callback=self.on_receive_order_book
+        )
+        # 체결 데이터 수신 시 콜백 등록
+        self.api.add_callback_on_real_data(
+            real_tyle=&quot;0B&quot;,  # 실시간시세 &gt; 주식체결
+            callback=self.on_receive_tick
+        )
+
+        # 데이터 수신을 위한 서버 요청
+        # &gt; 데이터가 수신되면 자동으로 콜백이 호출됨
+        # &gt; grp_no(그룹 번호) 별 종목코드(최대 100개) 관리 필요
+        codes1 = kospi_codes[:100]  
+        await self.api.register_hoga(grp_no='1', codes=codes1)
+        await self.api.register_tick(grp_no='1', codes=codes1)
+
+        # 현재 키움증권 제한으로 100개 코드 지원
+        # codes2 = kosdaq_codes[:100]
+        # await self.api.register_hoga(grp_no='2', codes=codes2)
+        # codes3 = kospi_codes[100:200]
+        # await self.api.register_tick(grp_no='3', codes=codes1)
+
+        # 데이터 수신 해제
+        await self.api.remove_register(grp_no='1', codes1, type=['0B', '0D'])
+        # await self.api.remove_register(grp_no='2', type='0D')  # 호가 '0D'
+        # await self.api.remove_register(grp_no='3', type='0B')  # 체결 '0B'
+</code></pre>
+<p>실제 운영을 위한 스크립트 예시</p>
+<pre><code class="language-python">import asyncio
+from kiwoom import Bot, REAL
+
+async def main():
+    # appkey, secretkey 파일 위치 예시
+    appkey = &quot;../keys/appkey.txt&quot;
+    secretkey = &quot;../keys/secretkey.txt&quot;
+
+    # context 사용을 통한 연결 및 리소스 관리
+    async with MyBot(host=REAL, appkey, secretkey) as bot:
+        bot.debug(True)  # 요청 및 응답 프린트
+        await bot.connect()
+        await bot.run()
+
+    # context 외부는 자동 연결 해제
+    print('Done')
+
+if __name__ == '__main__':
+    asyncio.run(main())
+
+</code></pre>
+<h2 id="architecture">Architecture</h2>
+<p>Layered Roles  </p>
+<ul>
+<li>Client : Http 요청 횟수 제한 관리 및 데이터 연속 조회 관리  </li>
+<li>
+<p>Socket : WebSocket 연결 및 수명 관리, 데이터 수신 후 asyncio.Queue에 전달  </p>
+</li>
+<li>
+<p>API : </p>
+<ul>
+<li>기본적인 REST API Http 요청 및 응답 관리  </li>
+<li>Queue를 소비하며 ping-pong, login 및 데이터 디코딩 수행  </li>
+<li>실시간 데이터 주제별 스트림/콜백/구독 관리  </li>
+</ul>
+</li>
+<li>
+<p>Bot : API 기능을 활용하여 전략을 수행하도록 사용자가 구현 </p>
+</li>
+</ul>
+<h2 id="license">License</h2>
+<p><a href="https://github.com/breadum/kiwoom-restful?tab=MIT-1-ov-file">MIT License</a> © Contributors</p>
+<h2 id="disclaimer">Disclaimer</h2>
+<ul>
+<li>본 프로젝트는 키움증권 공식 프로젝트가 아닙니다.</li>
+<li>실제 운용 전 모의 테스트 환경에서 충분히 검증 바랍니다.</li>
+<li>발생한 어떠한 손실에 대하여도 본 프로젝트의 개발자는 책임이 없음을 알립니다.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": ".", "features": [], "search": "assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>
