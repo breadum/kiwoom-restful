@@ -1,0 +1,27 @@
+/* 모듈 정의 */
+.md-typeset h2 {
+    margin-top: 2em;
+    font-size: 2.0em;
+    padding-bottom: 0.3em;
+}
+
+/* 클래스 정의 */
+.md-typeset h3 {
+    margin-top: 2em;
+    font-size: 1.6em;
+    /* 함수 구분선 추가 */
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.3em;
+}
+
+/* 함수 정의 */
+.md-typeset h6,
+.md-typeset h5,
+.md-typeset h4 {
+    margin-top: 2em;
+    font-size: 1.4em;
+    /* 함수 구분선 추가 */
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.3em;
+    padding-left: 0.5em;
+}
