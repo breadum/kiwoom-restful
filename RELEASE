@@ -10,3 +10,4 @@ Release Notes
 0.2.5 Update dataframe dtypes for candle data
 0.2.6 Set dynamic event loop in RateLimiter
 0.2.7 Fix remove_register method
+0.2.8 Support custom http headers with User Agent

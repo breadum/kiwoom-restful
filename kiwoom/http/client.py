@@ -2,7 +2,7 @@ import asyncio
 import warnings
 from itertools import chain
 from os.path import isfile
-from typing import Callable
+from typing import Callable, Optional
 
 import aiohttp
 from aiohttp import ClientSession
@@ -37,19 +37,21 @@ class Client:
         self._auth: str = ""
         self._appkey: str = appkey
         self._secretkey: str = secretkey
+        self._headers: Optional[dict] = None
 
         self._state_http = State.CLOSED
         self._ready_event = asyncio.Event()
         self._limiter: RateLimiter = RateLimiter()
         self._session: ClientSession = None
 
-    async def connect(self, appkey: str, secretkey: str) -> None:
+    async def connect(self, appkey: str, secretkey: str, headers: Optional[dict] = None) -> None:
         """
         Connect to Kiwoom REST API server and receive token.
 
         Args:
             appkey (str): file path or raw appkey
             secretkey (str): file path or raw secretkey
+            headers (dict): 서버 연결 시 사용할 헤더 (User-Agent 등)
         """
         if isfile(appkey):
             with open(appkey, "r") as f:
@@ -57,6 +59,8 @@ class Client:
         if isfile(secretkey):
             with open(secretkey, "r") as f:
                 self._secretkey = f.read().strip()
+        if headers:
+            self._headers = headers
 
         # Already connected
         if self._session and not self._session.closed:
@@ -65,6 +69,7 @@ class Client:
         # Establish HTTP session
         self._ready_event.clear()
         self._session = ClientSession(
+            headers=self._headers,
             timeout=aiohttp.ClientTimeout(
                 total=HTTP_TOTAL_TIMEOUT,
                 sock_connect=HTTP_CONNECT_TIMEOUT,

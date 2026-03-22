@@ -3,7 +3,7 @@ import contextlib
 from collections import defaultdict
 from datetime import datetime, timedelta
 from inspect import iscoroutinefunction
-from typing import Callable
+from typing import Callable, Optional
 
 import msgspec
 import orjson
@@ -74,9 +74,12 @@ class API(Client):
         self._callbacks = defaultdict(lambda: async_print)
         self._add_default_callback_on_real_data()
 
-    async def connect(self):
+    async def connect(self, headers: Optional[dict] = None):
         """
         키움 REST API HTTP 서버와 Websocket 서버에 접속하고 토큰을 발급받습니다.
+
+        Args:
+            headers (dict): 서버 연결 시 사용할 헤더 (User-Agent 등)
 
         Raises:
             RuntimeError: 토큰을 발급받지 못한 경우
@@ -93,7 +96,7 @@ class API(Client):
                 await cancel(self._recv_task)
 
                 # Connect http server
-                await super().connect(self._appkey, self._secretkey)
+                await super().connect(self._appkey, self._secretkey, headers)
                 if not (token := self.token()):
                     raise RuntimeError("Not connected: token is not available.")
 

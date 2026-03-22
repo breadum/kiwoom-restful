@@ -1,6 +1,6 @@
 import asyncio
 import contextlib
-from typing import Self
+from typing import Self, Optional
 
 from pandas import DataFrame
 
@@ -68,11 +68,14 @@ class Bot:
         """
         return self.api.token()
 
-    async def connect(self):
+    async def connect(self, headers: Optional[dict] = None):
         """
         키움 REST API HTTP 서버 및 Websocket 서버에 접속합니다.
+
+        Args:
+            headers (dict): 서버 연결 시 사용할 헤더 (User-Agent 등)
         """
-        await self.api.connect()
+        await self.api.connect(headers)
         await asyncio.sleep(1)
 
     async def close(self):
