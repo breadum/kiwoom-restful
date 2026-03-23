@@ -14,11 +14,20 @@ class RateLimiter:
         Globally limits requests per second.
 
         Args:
-            rps (float): requests per second
+            rps (int): requests per second
         """
         self._period = 1.0 / rps
         self._lock = asyncio.Lock()
         self._next = 0.0
+
+    def set(self, rps: int):
+        """
+        Set request limit per second.
+
+        Args:
+            rps (int): requests per second
+        """
+        self._period = 1.0 / rps
 
     async def acquire(self):
         async with self._lock:

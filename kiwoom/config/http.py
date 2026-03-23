@@ -18,8 +18,10 @@ __all__ = [
 #       1. 조회횟수 초당 5건
 #       2. 주문횟수 초당 5건
 #       3. 실시간 조건검색 개수 로그인 1개당 10건
+#       4. 모의투자의 경우 조회횟수 초당 1건
 REQ_LIMIT_TIME: float = 0.205  # sec
 REQ_LIMIT_PER_SECOND: int = 5
+REQ_LIMIT_PER_SECOND_MOCK: int = 1
 
 # Client & Socket Connection Settings
 HTTP_TOTAL_TIMEOUT: float = 10.0

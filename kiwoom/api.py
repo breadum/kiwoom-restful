@@ -17,7 +17,13 @@ from kiwoom.config.candle import (
     PERIOD_TO_TIME_KEY,
     valid,
 )
-from kiwoom.config.http import EXCEPTIONS_TO_SUPPRESS, WEBSOCKET_QUEUE_MAX_SIZE, State
+from kiwoom.config.http import (
+    REQ_LIMIT_PER_SECOND,
+    REQ_LIMIT_PER_SECOND_MOCK,
+    EXCEPTIONS_TO_SUPPRESS,
+    WEBSOCKET_QUEUE_MAX_SIZE,
+    State,
+)
 from kiwoom.config.real import RealData, RealType
 from kiwoom.config.trade import (
     REQUEST_LIMIT_DAYS,
@@ -54,14 +60,17 @@ class API(Client):
         match host:
             case config.REAL:
                 wss_url = Socket.REAL + Socket.ENDPOINT
+                rps = REQ_LIMIT_PER_SECOND
             case config.MOCK:
                 wss_url = Socket.MOCK + Socket.ENDPOINT
+                rps = REQ_LIMIT_PER_SECOND_MOCK
             case _:
                 raise ValueError(f"Invalid host: {self.host}")
 
         super().__init__(host, appkey, secretkey)
         self.queue = asyncio.Queue(maxsize=WEBSOCKET_QUEUE_MAX_SIZE)
         self.socket = Socket(url=wss_url, queue=self.queue)
+        self._limiter.set(rps)
 
         self._state = State.CLOSED
         self._state_lock = asyncio.Lock()
