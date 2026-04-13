@@ -44,7 +44,12 @@ def process(
     if not df.index.is_monotonic_increasing:
         df = df.sort_index(kind="stable")
     df = df.astype(PERIOD_TO_DTYPES[period]).abs()
-    df = df.loc[start:end]
+
+    start_key = start or None
+    end_key = end or None
+    if start_key is not None or end_key is not None:
+        df = df.loc[start_key:end_key]
+
     return df
 
 
