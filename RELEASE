@@ -12,3 +12,4 @@ Release Notes
 0.2.7 Fix remove_register method
 0.2.8 Support custom http headers with User Agent
 0.2.9 Support mock server with 1 request limit per sec
+0.3.0 Handle df slice object to support empty string

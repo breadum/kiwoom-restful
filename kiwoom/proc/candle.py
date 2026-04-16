@@ -29,6 +29,8 @@ def process(
         # Returns empty dataframe
         df = DataFrame(columns=columns)
         return df
+    start = start if start else None
+    end = end if end else None
 
     key: str = PERIOD_TO_BODY_KEY[ctype][period]
     df = DataFrame(data[key])
@@ -44,12 +46,7 @@ def process(
     if not df.index.is_monotonic_increasing:
         df = df.sort_index(kind="stable")
     df = df.astype(PERIOD_TO_DTYPES[period]).abs()
-
-    start_key = start or None
-    end_key = end or None
-    if start_key is not None or end_key is not None:
-        df = df.loc[start_key:end_key]
-
+    df = df.loc[start:end]
     return df
 
 

@@ -133,8 +133,8 @@ class Bot:
         code: str,
         period: str,
         ctype: str,
-        start: str = None,
-        end: str = None,
+        start: str = "",
+        end: str = "",
     ) -> DataFrame:
         """
         주어진 코드, 기간, 종목/업종 유형에 해당하는 캔들차트 데이터를 반환합니다.
