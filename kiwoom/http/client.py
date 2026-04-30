@@ -118,6 +118,19 @@ class Client:
         self._auth = ""
         self._session = None
 
+    async def _reconnect(self) -> None:
+        """
+        Re-establish the HTTP session on token expiry.
+
+        Subclasses with extra connection state (e.g. websocket) should
+        override this hook so the request retry path drives the right
+        reconnect for their class. Calling ``self.connect`` directly
+        from a base-class method breaks when the subclass has a
+        different signature.
+        """
+        await self.close()
+        await self.connect(self._appkey, self._secretkey)
+
     def token(self) -> str:
         """
         Returns token if available, otherwise empty string.
@@ -236,7 +249,7 @@ class Client:
                 case 3:
                     # 3 : Token Expired
                     print("Token expired, trying to refresh token...")
-                    await self.connect(self._appkey, self._secretkey)
+                    await self._reconnect()
                     return await self.request(endpoint, api_id, headers=headers, data=data)
 
         # Request Failure

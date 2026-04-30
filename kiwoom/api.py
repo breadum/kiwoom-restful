@@ -125,6 +125,17 @@ class API(Client):
                     await super().close()
                 raise Exception from err
 
+    async def _reconnect(self) -> None:
+        """
+        토큰 만료 시 HTTP + Websocket 모두 재연결합니다.
+
+        Overrides ``Client._reconnect`` so the base ``request`` retry
+        path can drive a full reconnect via the API class's own
+        ``connect()`` signature.
+        """
+        await self.close()
+        await self.connect()
+
     async def close(self):
         """
         키움 REST API 서버와 연결을 해제하고 리소스를 정리합니다.
